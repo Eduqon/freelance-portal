@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import * as qs from "qs";
 import { useEffect, useState, useRef } from "react";
 import { apiUrl } from "../services/contants";
 import { db } from "../services/firebase";
@@ -43,6 +44,7 @@ import {
   ModalBody,
   InputRightAddon,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 
 function SubmitQuote() {
   const [assignment, setAssignment] = useState();
@@ -66,11 +68,42 @@ function SubmitQuote() {
   const [operatorExpertChat, setOperatorExpertChat] = useState([]);
   const [qcExpertChat, setQcExpertChat] = useState([]);
 
+  const newMessageCounter = useMemo(() => {
+    if (assignment && operatorExpertChat.length) {
+      const lastMessage = operatorExpertChat[operatorExpertChat.length - 1];
+      return (lastMessage && lastMessage.newMessageCount) || 0;
+    }
+    return 0;
+  }, [operatorExpertChat, assignment]);
+
   let stickyNotesList = [];
   let qcNotesList = [];
 
   const inputFileQCExpert = useRef(null);
   const inputFileOperatorExpert = useRef(null);
+  const chatBoxRef = useRef(null);
+
+  useEffect(() => {
+    const search = window.location.search;
+    if (qs.parse(search)["?jump_to_chat"]) {
+      chatBoxRef.current && chatBoxRef.current.scrollIntoView();
+    }
+  }, [chatBoxRef.current]);
+
+  async function _fetchMessages(id) {
+    try {
+      const response = await axios.get(apiUrl + "/messages", {
+        id: id,
+      });
+      let resData = response.data.result;
+
+      if (response.data.success) {
+        // setNewMessageCounter(resData[0].newMessageCount);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   async function _fetchQcExpertChat(qcEmail, assignment_id) {
     let expertEmail = localStorage.getItem("expertEmail");
@@ -86,7 +119,7 @@ function SubmitQuote() {
         setQcExpertChat(doc.data().conversation);
       });
     } catch (error) {
-      //console.log(error);
+      console.log(error);
     }
   }
 
@@ -104,7 +137,7 @@ function SubmitQuote() {
         setOperatorExpertChat(doc.data().conversation);
       });
     } catch (error) {
-      //console.log(error);
+      console.log(error);
     }
   }
 
@@ -134,6 +167,16 @@ function SubmitQuote() {
                     name: fileName,
                   },
                 ],
+              },
+              config
+            );
+
+            const createNotification = await axios.post(
+              apiUrl + "/notifications",
+              {
+                assignmentId: assignment.id,
+                status: "Raw Submission",
+                read: false,
               },
               config
             );
@@ -260,9 +303,9 @@ function SubmitQuote() {
     setQcNotes(qcNotesList);
   }
 
-  useEffect(() => {
-    _fetchToken();
-    _fetchAssignmentDetails();
+  useEffect(async () => {
+    await _fetchToken();
+    await _fetchAssignmentDetails();
   }, []);
 
   let params = useParams();
@@ -335,6 +378,7 @@ function SubmitQuote() {
                 data[0].assignedOperator,
                 data[0]._id
               );
+              await _fetchMessages(data[0]._id);
             } else {
               console.log("Assignment Not Found");
             }
@@ -846,7 +890,7 @@ function SubmitQuote() {
                         href={messageItem.msg}
                       >
                         {" "}
-                        {messageItem.msg.substring(62)}{" "}
+                        {messageItem.msg && messageItem.msg.substring(62)}{" "}
                       </Link>{" "}
                     </VStack>{" "}
                   </Box>
@@ -981,6 +1025,7 @@ function SubmitQuote() {
             borderRadius="md"
             width={"sm"}
             marginTop={"20px"}
+            ref={chatBoxRef}
           >
             <Box p={4} bgColor="gray.200">
               <HStack>
@@ -1037,7 +1082,7 @@ function SubmitQuote() {
                         href={messageItem.msg}
                       >
                         {" "}
-                        {messageItem.msg.substring(62)}{" "}
+                        {messageItem.msg && messageItem.msg.substring(62)}{" "}
                       </Link>{" "}
                     </VStack>{" "}
                   </Box>
@@ -1151,7 +1196,16 @@ function SubmitQuote() {
                                 time: Date.now(),
                                 type: "TEXT",
                                 user: assignment.assignedExpert,
+                                newMessageCount: newMessageCounter + 1,
                               }),
+                            }
+                          );
+
+                          const sendMessage = await axios.post(
+                            apiUrl + "/messages",
+                            {
+                              id: assignment.id,
+                              expertEmail: assignment.assignedExpert,
                             }
                           );
                         }
