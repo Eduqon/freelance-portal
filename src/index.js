@@ -1,9 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Center, ChakraProvider, Heading } from '@chakra-ui/react';
-import SubmitQuote from '../src/pages/SubmitQuote';
+import { Center, ChakraProvider, Heading } from "@chakra-ui/react";
+import SubmitQuote from "../src/pages/SubmitQuote";
+import ExpertOpertorChat from "./pages/ExpertOperatorChat";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -11,6 +12,10 @@ ReactDOM.render(
       <BrowserRouter>
         <Routes>
           <Route path="/:assignmentID/:expertID" element={<SubmitQuote />} />
+          <Route
+            path="/:assignmentID/:expertID/expert_Operator_Chat"
+            element={<ExpertOpertorChat />}
+          />
           <Route
             path="*"
             element={
@@ -23,5 +28,5 @@ ReactDOM.render(
       </BrowserRouter>
     </ChakraProvider>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );
