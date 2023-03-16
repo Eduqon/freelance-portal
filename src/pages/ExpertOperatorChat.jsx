@@ -27,6 +27,7 @@ import {
   InputRightElement,
   InputLeftElement,
   useDisclosure,
+  Spinner,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
 
@@ -254,231 +255,217 @@ function ExpertOpertorChat() {
       console.log(err);
     }
   }
-
-  if (loading) {
+  if (assignment === undefined || assignment.length === 0) {
     return (
-      <>
-        <Center> Loading..... </Center>{" "}
-      </>
+      <Center>
+        <Spinner />
+      </Center>
     );
-  } else {
-    if (assignment == undefined) {
-      return (
-        <>
-          <h2> Invalid ID </h2>{" "}
-        </>
-      );
-    } else {
-      return (
-        <Center>
-          <Box
-            borderWidth="1px"
-            borderRadius="md"
-            width={"lg"}
-            height={"4xl"}
-            marginTop={"20px"}
-            ref={chatBoxRef}
-          >
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}> Expert Chat with Operator </Heading>{" "}
-              </HStack>{" "}
-            </Box>{" "}
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={2}
-              minH={"90%"}
-              maxH={"90%"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {" "}
-                {inProcessOperatorExpertChat.map((messageItem, index) => (
-                  <Box
-                    display={
-                      messageItem.type === "TEXT"
-                        ? "flex"
-                        : messageItem.type === "MEDIA"
-                        ? "flex"
-                        : "none"
-                    }
-                    alignSelf={
-                      messageItem.user === expertID ? "flex-end" : "flex-start"
-                    }
-                    flexWrap={true}
-                    padding={2}
-                    borderRadius={"md"}
-                    maxWidth="70%"
-                    bgColor={
-                      messageItem.user === expertID ? "blue.100" : "green.100"
-                    }
-                    key={index}
-                  >
-                    <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                      <Text
-                        display={messageItem.type === "TEXT" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                      >
-                        {" "}
-                        {messageItem.msg}{" "}
-                      </Text>{" "}
-                      <Link
-                        color={"blue"}
-                        fontWeight={"bold"}
-                        display={messageItem.type === "MEDIA" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                        href={messageItem.msg}
-                      >
-                        {" "}
-                        {messageItem.msg && messageItem.msg.substring(62)}{" "}
-                      </Link>{" "}
-                    </VStack>{" "}
-                  </Box>
-                ))}{" "}
-              </VStack>{" "}
-              <InputGroup>
-                <Input type="text" id="addChatOperatorExpert" />
-                <Input
-                  type="file"
-                  id="addFileOperatorExpert"
-                  onChange={async () => {
-                    let fileUrl = "";
-                    if (inputFileOperatorExpert) {
-                      onOpen();
-                      try {
-                        var config = {
-                          method: "put",
-                          url:
-                            "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                            encodeURIComponent(
-                              inputFileOperatorExpert.current.files[0].name
-                            ) +
-                            "?" +
-                            token,
-                          headers: {
-                            "x-ms-blob-type": "BlockBlob",
-                          },
-                          data: inputFileOperatorExpert.current.files[0],
-                        };
-
-                        axios(config)
-                          .then(async function (response) {
-                            fileUrl =
-                              "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                              encodeURIComponent(
-                                inputFileOperatorExpert.current.files[0].name
-                              );
-                            const message = await updateDoc(
-                              doc(
-                                db,
-                                "chat",
-                                assignment.assignedExpert +
-                                  "_" +
-                                  assignment.assignedOperator +
-                                  "_" +
-                                  assignment.id
-                              ),
-                              {
-                                conversation: arrayUnion({
-                                  msg: fileUrl,
-                                  time: Date.now(),
-                                  type: "MEDIA",
-                                  user: assignment.assignedExpert,
-                                }),
-                              }
-                            );
-                          })
-                          .catch(function (error) {
-                            console.log(error);
-                          });
-                      } catch (error) {
-                        console.log(error);
-                      }
-                      onClose();
-                    }
-                  }}
-                  ref={inputFileOperatorExpert}
-                  style={{ display: "none" }}
-                />{" "}
-                <InputLeftElement h={"full"}>
-                  <Button
-                    id="attachButton"
-                    onClick={async () => {
-                      inputFileOperatorExpert.current.click();
-                    }}
-                  >
-                    <AttachmentIcon />
-                  </Button>{" "}
-                </InputLeftElement>{" "}
-                <InputRightElement h={"full"}>
-                  <Button
-                    id="sendButton"
-                    onClick={async () => {
-                      let Regex =
-                        /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
-                      let textInput = document.getElementById(
-                        "addChatOperatorExpert"
-                      );
-                      if (
-                        textInput.value !== "" &&
-                        textInput.value !== undefined
-                      ) {
-                        if (Regex.test(textInput.value)) {
-                          window.alert(
-                            "Sharing Phone Numbers through Chat is not allowed"
-                          );
-                        } else {
-                          const chatName =
-                            expertID +
-                            "_" +
-                            assignment.assignedOperator +
-                            "_" +
-                            assignment.id;
-
-                          const chatDoc = await getDoc(
-                            doc(db, "chat", chatName)
-                          );
-
-                          if (!chatDoc.exists()) {
-                            await setDoc(doc(db, "chat", chatName), {
-                              conversation: [],
-                            });
-                          } else {
-                            const message = await updateDoc(
-                              doc(db, "chat", chatName),
-                              {
-                                conversation: arrayUnion({
-                                  msg: textInput.value,
-                                  time: Date.now(),
-                                  type: "TEXT",
-                                  user: expertID,
-                                  newMessageCount: newMessageCounter + 1,
-                                }),
-                              }
-                            );
-                          }
-                          const sendMessage = await axios.post(
-                            apiUrl + "/messages",
-                            {
-                              id: assignment.id,
-                              expertEmail: expertID,
-                            }
-                          );
-                        }
-                      }
-                      textInput.value = "";
-                    }}
-                  >
-                    <ArrowForwardIcon />
-                  </Button>{" "}
-                </InputRightElement>{" "}
-              </InputGroup>{" "}
-            </VStack>{" "}
-          </Box>{" "}
-        </Center>
-      );
-    }
   }
+
+  return (
+    <Center>
+      <Box
+        borderWidth="1px"
+        borderRadius="md"
+        width={"lg"}
+        height={"4xl"}
+        marginTop={"20px"}
+        ref={chatBoxRef}
+      >
+        <Box p={4} bgColor="gray.200">
+          <HStack>
+            <Heading fontSize={"xl"}> Expert Chat with Operator </Heading>{" "}
+          </HStack>{" "}
+        </Box>{" "}
+        <VStack
+          alignItems={"start"}
+          justifyContent={"space-between"}
+          margin={2}
+          minH={"90%"}
+          maxH={"90%"}
+        >
+          <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
+            {" "}
+            {inProcessOperatorExpertChat.map((messageItem, index) => (
+              <Box
+                display={
+                  messageItem.type === "TEXT"
+                    ? "flex"
+                    : messageItem.type === "MEDIA"
+                    ? "flex"
+                    : "none"
+                }
+                alignSelf={
+                  messageItem.user === expertID ? "flex-end" : "flex-start"
+                }
+                flexWrap={true}
+                padding={2}
+                borderRadius={"md"}
+                maxWidth="70%"
+                bgColor={
+                  messageItem.user === expertID ? "blue.100" : "green.100"
+                }
+                key={index}
+              >
+                <VStack maxWidth="100%" overflowWrap={"break-word"}>
+                  <Text
+                    display={messageItem.type === "TEXT" ? "flex" : "none"}
+                    maxWidth={"100%"}
+                  >
+                    {" "}
+                    {messageItem.msg}{" "}
+                  </Text>{" "}
+                  <Link
+                    color={"blue"}
+                    fontWeight={"bold"}
+                    display={messageItem.type === "MEDIA" ? "flex" : "none"}
+                    maxWidth={"100%"}
+                    href={messageItem.msg}
+                  >
+                    {" "}
+                    {messageItem.msg && messageItem.msg.substring(62)}{" "}
+                  </Link>{" "}
+                </VStack>{" "}
+              </Box>
+            ))}{" "}
+          </VStack>{" "}
+          <InputGroup>
+            <Input type="text" id="addChatOperatorExpert" />
+            <Input
+              type="file"
+              id="addFileOperatorExpert"
+              onChange={async () => {
+                let fileUrl = "";
+                if (inputFileOperatorExpert) {
+                  onOpen();
+                  try {
+                    var config = {
+                      method: "put",
+                      url:
+                        "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
+                        encodeURIComponent(
+                          inputFileOperatorExpert.current.files[0].name
+                        ) +
+                        "?" +
+                        token,
+                      headers: {
+                        "x-ms-blob-type": "BlockBlob",
+                      },
+                      data: inputFileOperatorExpert.current.files[0],
+                    };
+
+                    axios(config)
+                      .then(async function (response) {
+                        fileUrl =
+                          "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
+                          encodeURIComponent(
+                            inputFileOperatorExpert.current.files[0].name
+                          );
+                        const message = await updateDoc(
+                          doc(
+                            db,
+                            "chat",
+                            assignment.assignedExpert +
+                              "_" +
+                              assignment.assignedOperator +
+                              "_" +
+                              assignment.id
+                          ),
+                          {
+                            conversation: arrayUnion({
+                              msg: fileUrl,
+                              time: Date.now(),
+                              type: "MEDIA",
+                              user: assignment.assignedExpert,
+                            }),
+                          }
+                        );
+                      })
+                      .catch(function (error) {
+                        console.log(error);
+                      });
+                  } catch (error) {
+                    console.log(error);
+                  }
+                  onClose();
+                }
+              }}
+              ref={inputFileOperatorExpert}
+              style={{ display: "none" }}
+            />{" "}
+            <InputLeftElement h={"full"}>
+              <Button
+                id="attachButton"
+                onClick={async () => {
+                  inputFileOperatorExpert.current.click();
+                }}
+              >
+                <AttachmentIcon />
+              </Button>{" "}
+            </InputLeftElement>{" "}
+            <InputRightElement h={"full"}>
+              <Button
+                id="sendButton"
+                onClick={async () => {
+                  let Regex =
+                    /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
+                  let textInput = document.getElementById(
+                    "addChatOperatorExpert"
+                  );
+                  if (textInput.value !== "" && textInput.value !== undefined) {
+                    if (Regex.test(textInput.value)) {
+                      window.alert(
+                        "Sharing Phone Numbers through Chat is not allowed"
+                      );
+                    } else {
+                      const chatName =
+                        expertID +
+                        "_" +
+                        assignment.assignedOperator +
+                        "_" +
+                        assignment.id;
+
+                      const chatDoc = await getDoc(doc(db, "chat", chatName));
+
+                      if (!chatDoc.exists()) {
+                        await setDoc(doc(db, "chat", chatName), {
+                          conversation: [],
+                        });
+                      } else {
+                        const message = await updateDoc(
+                          doc(db, "chat", chatName),
+                          {
+                            conversation: arrayUnion({
+                              msg: textInput.value,
+                              time: Date.now(),
+                              type: "TEXT",
+                              user: expertID,
+                              newMessageCount: newMessageCounter + 1,
+                            }),
+                          }
+                        );
+                      }
+                      const sendMessage = await axios.post(
+                        apiUrl + "/messages",
+                        {
+                          id: assignment.id,
+                          expertEmail: expertID,
+                        }
+                      );
+                    }
+                  }
+                  textInput.value = "";
+                }}
+              >
+                <ArrowForwardIcon />
+              </Button>{" "}
+            </InputRightElement>{" "}
+          </InputGroup>{" "}
+        </VStack>{" "}
+      </Box>{" "}
+    </Center>
+  );
 }
 
 export default ExpertOpertorChat;
