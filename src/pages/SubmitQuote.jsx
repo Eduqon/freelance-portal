@@ -521,7 +521,7 @@ function SubmitQuote() {
             <Text fontWeight={"bold"}> Deadline: </Text>{" "}
             <Text> {assignment.expertDeadline} </Text>{" "}
           </HStack>{" "}
-          <VStack padding={2} alignItems={"left"}>
+          <VStack padding={2} alignItems={"left"} w="100%">
             {" "}
             {assignment.descriptionFile.length != 0 ? (
               assignment.descriptionFile.map((file, index) => (
@@ -542,7 +542,11 @@ function SubmitQuote() {
         </VStack>{" "}
       </Box>{" "}
       <Box
-        display={assignment.status === "Quotation Asked" ? "block" : "none"}
+        display={
+          assignment.status === "Quotation Asked" || "CP1 Done"
+            ? "block"
+            : "none"
+        }
         width={"sm"}
         borderWidth="1px"
         borderRadius="md"
