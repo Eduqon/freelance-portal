@@ -162,6 +162,7 @@ function SubmitQuote() {
                   assignment.status === "Expert Assigned" ? "raw" : "rework",
                 _id: assignment.id,
                 expertId: params.expertID,
+                deliveryDate: Date.now(),
                 files: [
                   {
                     url: fileUrl,
