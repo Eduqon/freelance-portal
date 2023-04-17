@@ -155,6 +155,43 @@ function SubmitQuote() {
         };
         try {
           if (fileUrl !== undefined) {
+            const responseDeadline = await axios.post(
+              apiUrl + "/assignment/update",
+              {
+                _id: assignment.id,
+                status: "Raw Submission",
+                currentState: 5,
+                order_placed_time: {
+                  ...assignment.order_placed_time,
+                  5: Date.now(),
+                },
+                delivery_file:
+                  assignment.delivery_file &&
+                  assignment.delivery_file[assignment.id]
+                    ? {
+                        [assignment.id]: [
+                          ...assignment.delivery_file[assignment.id],
+                          fileUrl,
+                        ],
+                      }
+                    : {
+                        [assignment.id]: [fileUrl],
+                      },
+                deliveryDate:
+                  assignment.deliveryDate &&
+                  assignment.deliveryDate[assignment.id]
+                    ? {
+                        [assignment.id]: [
+                          ...assignment.deliveryDate[assignment.id],
+                          Date.now(),
+                        ],
+                      }
+                    : {
+                        [assignment.id]: [Date.now()],
+                      },
+              },
+              config
+            );
             const response = await axios.post(
               apiUrl + "/assignment/submissions",
               {
@@ -162,7 +199,6 @@ function SubmitQuote() {
                   assignment.status === "Expert Assigned" ? "raw" : "rework",
                 _id: assignment.id,
                 expertId: params.expertID,
-                deliveryDate: Date.now(),
                 files: [
                   {
                     url: fileUrl,
@@ -177,7 +213,6 @@ function SubmitQuote() {
               apiUrl + "/notifications",
               {
                 assignmentId: assignment.id,
-                status: "Raw Submission",
                 read: false,
               },
               config
@@ -357,14 +392,18 @@ function SubmitQuote() {
                   new Date(data[0].createdAt).toLocaleTimeString() +
                   ", " +
                   new Date(data[0].createdAt).toDateString(),
-                expertDeadline:
-                  new Date(data[0].expertDeadline).toLocaleTimeString() +
-                  ", " +
-                  new Date(data[0].expertDeadline).toDateString(),
+                expertDeadline: data[0].expertDeadline
+                  ? data[0].expertDeadline
+                  : "",
                 level: data[0].level,
                 reference: data[0].reference,
                 description: data[0].description,
                 descriptionFile: data[0].descriptionFile,
+                delivery_file: data[0].delivery_file
+                  ? data[0].delivery_file
+                  : [],
+                deliveryDate: data[0].deliveryDate ? data[0].deliveryDate : [],
+                order_placed_time: data[0].order_placed_time,
                 numOfPages: data[0].numOfPages,
                 paid: data[0].paid,
                 deadline:
@@ -422,10 +461,9 @@ function SubmitQuote() {
                       new Date(data[0].createdAt).toLocaleTimeString() +
                       ", " +
                       new Date(data[0].createdAt).toDateString(),
-                    expertDeadline:
-                      new Date(data[0].expertDeadline).toLocaleTimeString() +
-                      ", " +
-                      new Date(data[0].expertDeadline).toDateString(),
+                    expertDeadline: data[0].expertDeadline
+                      ? data[0].expertDeadline
+                      : "",
                     level: data[0].level,
                     reference: data[0].reference,
                     description: data[0].description,
@@ -520,7 +558,22 @@ function SubmitQuote() {
           </HStack>{" "}
           <HStack padding={2}>
             <Text fontWeight={"bold"}> Deadline: </Text>{" "}
-            <Text> {assignment.expertDeadline} </Text>{" "}
+            <Text>
+              {" "}
+              {assignment.expertDeadline
+                ? new Date(
+                    assignment.expertDeadline[assignment.id][
+                      assignment.expertDeadline[assignment.id].length - 1
+                    ]
+                  ).toLocaleTimeString() +
+                  ", " +
+                  new Date(
+                    assignment.expertDeadline[assignment.id][
+                      assignment.expertDeadline[assignment.id].length - 1
+                    ]
+                  ).toDateString()
+                : ""}{" "}
+            </Text>{" "}
           </HStack>{" "}
           <VStack padding={2} alignItems={"left"} w="100%">
             {" "}
