@@ -5,12 +5,18 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Center, ChakraProvider, Heading } from "@chakra-ui/react";
 import SubmitQuote from "../src/pages/SubmitQuote";
 import ExpertOpertorChat from "./pages/ExpertOperatorChat";
+import Portal from "./pages/Portal";
+import AdminLogin from "./pages/Login";
+import Isverify from "./pages/IsVerify";
 
 ReactDOM.render(
   <React.StrictMode>
     <ChakraProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/expert/login" element={<AdminLogin />} />
+          <Route path="/expert/portal" element={<Portal />} />
+          <Route path="/verify/:email" element={<Isverify />} />
           <Route path="/:assignmentID/:expertID" element={<SubmitQuote />} />
           <Route
             path="/:assignmentID/:expertID/expert_Operator_Chat"
