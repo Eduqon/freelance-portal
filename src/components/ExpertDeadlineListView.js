@@ -8,8 +8,6 @@ import {
   TableContainer,
   Link,
   Button,
-} from "@chakra-ui/react";
-import {
   Box,
   Accordion,
   AccordionItem,
@@ -25,14 +23,19 @@ import axios from "axios";
 
 function ExpertDeadlineListView() {
   const [assignments, setAssignments] = useState([]);
+  const [expertEmail, setExpertEmail] = useState("");
 
   let navigate = useNavigate();
 
   let assignmentList = [];
 
   useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      setExpertEmail(email);
+    }
     _fetchAssignments();
-  }, []);
+  }, [expertEmail]);
 
   async function _fetchAssignments() {
     try {
@@ -58,29 +61,19 @@ function ExpertDeadlineListView() {
         },
         config
       );
-      let data = response.data.assignmentData;
+      let data = response.data.assignmentData.filter(
+        (value) => value.assignedExpert === expertEmail
+      );
       assignmentList = [];
       if (data.length !== 0) {
         for (let index = 0; index < data.length; index++) {
           assignmentList.push({
             id: data[index]._id,
-            client_id: data[index].client_id,
             subject: data[index].subject,
             status: data[index].status,
-            quotation: data[index].quotation,
-            currencyOfQuote: data[index].currencyOfQuote,
-            level: data[index].level,
-            reference: data[index].reference,
-            description: data[index].description,
-            descriptionFile: data[index].descriptionFile,
             page_word_data: data[index].page_word_data,
             display_page_word: data[index].display_page_word,
             charges: data[index].charges,
-            paid: data[index].paid,
-            deadline:
-              new Date(data[index].deadline).toLocaleTimeString() +
-              ", " +
-              new Date(data[index].deadline).toDateString(),
             expertDeadline: data[index].expertDeadline
               ? new Date(
                   data[index].expertDeadline[data[index]._id]
@@ -113,7 +106,7 @@ function ExpertDeadlineListView() {
             <Tr>
               <Th>Id</Th>
               <Th>Subject</Th>
-              <Th>Deadline</Th>
+              <Th>Expert Deadline</Th>
               <Th>Word Limit / Pages</Th>
               <Th>Payment Confirmed</Th>
               <Th>Status</Th>
@@ -129,30 +122,36 @@ function ExpertDeadlineListView() {
               </Th>
             </Tr>
           </Thead>
-          <Tbody>
-            {assignments.map((assignment) => (
-              <Tr key={assignment.id}>
-                <Td fontWeight={"semibold"}>
-                  <Link href={"/admin/assignment_details/" + assignment.id}>
-                    {assignment.id}
-                  </Link>
-                </Td>
-                <Td color={"green.600"} fontWeight={"semibold"}>
-                  {assignment.subject}
-                </Td>
-                <Td>{assignment.deadline}</Td>
-                <Td>
-                  {assignment.page_word_data +
-                    " " +
-                    assignment.display_page_word}
-                </Td>
-                <Td fontWeight={"semibold"}>{assignment.charges}</Td>
-                <Td color={"red.600"} fontWeight={"semibold"}>
-                  {assignment.status}
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
+          {assignments && assignments.length !== 0 ? (
+            <Tbody>
+              {assignments.map((assignment) => (
+                <Tr key={assignment.id}>
+                  <Td fontWeight={"semibold"}>
+                    <Link href={"/assignment_details/" + assignment.id}>
+                      {assignment.id}
+                    </Link>
+                  </Td>
+                  <Td color={"green.600"} fontWeight={"semibold"}>
+                    {assignment.subject}
+                  </Td>
+                  <Td>{assignment.expertDeadline}</Td>
+                  <Td>
+                    {assignment.page_word_data +
+                      " " +
+                      assignment.display_page_word}
+                  </Td>
+                  <Td fontWeight={"semibold"}>{assignment.charges}</Td>
+                  <Td color={"red.600"} fontWeight={"semibold"}>
+                    {assignment.status}
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          ) : (
+            <Tbody display="flex">
+              <Box margin="0 auto">No Orders</Box>
+            </Tbody>
+          )}
         </Table>
       </div>
       {/* accordion for mobile version  */}

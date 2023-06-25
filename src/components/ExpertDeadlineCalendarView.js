@@ -7,9 +7,15 @@ import {
   Tr,
   Th,
   Td,
+  TableContainer,
   Link,
+  Box,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from "@chakra-ui/react";
-import { Box } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiUrl } from "../services/contants";
@@ -17,14 +23,19 @@ import axios from "axios";
 
 function ExpertDeadlineCalendarView() {
   const [assignments, setAssignments] = useState([]);
+  const [expertEmail, setExpertEmail] = useState("");
 
   let navigate = useNavigate();
 
   let assignmentList = [];
 
   useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      setExpertEmail(email);
+    }
     _fetchAssignments(new Date());
-  }, []);
+  }, [expertEmail]);
 
   async function _fetchAssignments(dateValue) {
     try {
@@ -38,7 +49,9 @@ function ExpertDeadlineCalendarView() {
       };
 
       const response = await axios.get(apiUrl + "/assignment/fetch", config);
-      let data = response.data.assignmentData;
+      let data = response.data.assignmentData.filter(
+        (value) => value.assignedExpert === expertEmail
+      );
 
       const expertID = data.filter(
         (data) =>
@@ -55,26 +68,16 @@ function ExpertDeadlineCalendarView() {
         ? expertID.forEach((data) => {
             assignmentList.push({
               id: data._id,
-              client_id: data.client_id,
-              assignedExpert: data.assignedExpert,
-              expert: data.assignedExpert,
               subject: data.subject,
               status: data.status,
-              quotation: data.quotation,
-              currencyOfQuote: data.currencyOfQuote,
-              level: data.level,
-              reference: data.reference,
-              description: data.description,
-              descriptionFile: data.descriptionFile,
               page_word_data: data.page_word_data,
               display_page_word: data.display_page_word,
               charges: data.charges,
-              paid: data.paid,
-              deadline:
-                new Date(data.deadline).toLocaleTimeString() +
-                ", " +
-                new Date(data.deadline).toDateString(),
-              expertDeadline: data.expertDeadline ? data.expertDeadline : [],
+              expertDeadline: data.expertDeadline
+                ? new Date(data.expertDeadline[data._id]).toLocaleTimeString() +
+                  ", " +
+                  new Date(data.expertDeadline[data._id]).toDateString()
+                : "",
             });
           })
         : console.log("No Orders");
@@ -104,7 +107,7 @@ function ExpertDeadlineCalendarView() {
             <Tr>
               <Th>Id</Th>
               <Th>Subject</Th>
-              <Th>Deadline</Th>
+              <Th>Expert Deadline</Th>
               <Th>Word Limit / Pages</Th>
               <Th>Payment Confirmed</Th>
               <Th>Status</Th>
@@ -122,7 +125,7 @@ function ExpertDeadlineCalendarView() {
                   <Td color={"green.600"} fontWeight={"semibold"}>
                     {assignment.subject}
                   </Td>
-                  <Td>{assignment.deadline}</Td>
+                  <Td>{assignment.expertDeadline}</Td>
                   <Td>
                     {assignment.page_word_data +
                       " " +
@@ -143,7 +146,7 @@ function ExpertDeadlineCalendarView() {
         </Table>
       </div>
       {/* accordion for mobile version  */}
-      {/* <div display={{ base: "block", sm: "none", md: "none" }}>
+      <div display={{ base: "block", sm: "none", md: "none" }}>
         {assignments.map((assignment) => {
           <Accordion
             defaultIndex={[0]}
@@ -178,42 +181,33 @@ function ExpertDeadlineCalendarView() {
                         <Tr key={assignment.id}>
                           <Table>
                             <Tr>
-                              <Th>Student Email</Th>
-                              <Td>
-                                {localStorage.getItem("userRole") ===
-                                "Super Admin"
-                                  ? assignment.client_id
-                                  : assignment.client_id.substring(0, 2) +
-                                    "****" +
-                                    "@" +
-                                    "****" +
-                                    ".com"}
-                              </Td>
-                            </Tr>
-                            <Tr>
                               <Th>Subject</Th>
                               <Td color={"green.600"} fontWeight={"semibold"}>
                                 {assignment.subject}
                               </Td>
                             </Tr>
                             <Tr>
-                              <Th>Amount Paid</Th>
-                              <Td>{assignment.paid}</Td>
-                            </Tr>
-                            <Tr>
-                              <Th>Expert</Th>
-                              <Td>{assignment.assignedExpert}</Td>
-                            </Tr>
-                            <Tr>
                               <Th>Expert Deadline</Th>
-                              <Td fontWeight={"semibold"}>
-                                {assignment.expertDeadline}
+                              <Td>{assignment.expertDeadline}</Td>
+                            </Tr>
+                            <Tr>
+                              <Th>Word Limit / Pages</Th>
+                              <Td>
+                                {assignment.page_word_data +
+                                  " " +
+                                  assignment.display_page_word}
                               </Td>
                             </Tr>
                             <Tr>
-                              <Th>Deadline</Th>
+                              <Th>Payment Confirmed</Th>
+                              <Td fontWeight={"semibold"}>
+                                {assignment.charges}
+                              </Td>
+                            </Tr>
+                            <Tr>
+                              <Th>Status</Th>
                               <Td color={"red.600"} fontWeight={"semibold"}>
-                                {assignment.deadline}
+                                {assignment.status}
                               </Td>
                             </Tr>
                           </Table>
@@ -226,7 +220,7 @@ function ExpertDeadlineCalendarView() {
             </AccordionItem>
           </Accordion>;
         })}
-      </div> */}
+      </div>
     </>
   );
 }

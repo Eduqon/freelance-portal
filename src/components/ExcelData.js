@@ -8,7 +8,6 @@ import {
   HStack,
   Input,
   Link,
-  Select,
   Table,
   Tbody,
   Td,
@@ -18,7 +17,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CSVLink } from "react-csv";
 import { useNavigate } from "react-router-dom";
 import { apiUrl } from "../services/contants";
@@ -35,8 +34,16 @@ function GetExcelData() {
   });
   let assignmentList = [];
   let allAssignmentList = [];
-  let selectedExpert = localStorage.getItem("userEmail");
+  const [expertEmail, setExpertEmail] = useState("");
+
   let navigate = useNavigate();
+
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (email) {
+      setExpertEmail(email);
+    }
+  }, [expertEmail]);
 
   async function _fetchAssignments() {
     try {
@@ -50,15 +57,15 @@ function GetExcelData() {
       };
       const response = await axios.get(apiUrl + "/assignment/fetch", config);
       let newData = response.data.assignmentData.filter(
-        (data) => data.assignedExpert === selectedExpert
+        (data) => data.assignedExpert === expertEmail
       );
       let filterData =
         newData &&
         newData.filter(
           (data) =>
-            new Date(data.expertAssignedDate).toLocaleDateString() >=
+            new Date(data.expertDeadline[data._id][0]).toLocaleDateString() >=
               new Date(date.startDate).toLocaleDateString() &&
-            new Date(data.expertAssignedDate).toLocaleDateString() <=
+            new Date(data.expertDeadline[data._id][0]).toLocaleDateString() <=
               new Date(date.endDate).toLocaleDateString()
         );
       assignmentList = [];
@@ -67,30 +74,19 @@ function GetExcelData() {
             assignmentList.push({
               _id: data._id,
               subject: data.subject,
-              instructionFile: data.descriptionFile[0],
-              assignDate:
-                new Date(data.expertAssignedDate).toLocaleTimeString() +
-                ", " +
-                new Date(data.expertAssignedDate).toDateString(),
-              expertDeadline:
-                new Date(data.deadline).toLocaleTimeString() +
-                ", " +
-                new Date(data.deadline).toDateString(),
-              deliveryDate:
-                new Date(data.deliveryDate).toLocaleTimeString() +
-                ", " +
-                new Date(data.deliveryDate).toDateString(),
+              expertDeadline: data.expertDeadline
+                ? new Date(
+                    data.expertDeadline[data._id][0]
+                  ).toLocaleTimeString() +
+                  ", " +
+                  new Date(data.expertDeadline[data._id][0]).toDateString()
+                : "",
               pages_or_wordCount:
                 (data.page_word_data || "") +
                 " " +
                 (data.display_page_word || ""),
-              charges:
-                data.charges === "Regular Charges"
-                  ? "Regular Charges"
-                  : "Special Charges",
               amount_Charges_Confirmed: data.charges || "",
-              refund: "",
-              payment_Status: "",
+              status: data.status,
             });
           })
         : console.log("No Assignments");
@@ -113,7 +109,7 @@ function GetExcelData() {
       };
       const response = await axios.get(apiUrl + "/assignment/fetch", config);
       let newData = response.data.assignmentData.filter(
-        (data) => data.assignedExpert === selectedExpert
+        (data) => data.assignedExpert === expertEmail
       );
       allAssignmentList = [];
       newData.length !== 0
@@ -121,30 +117,19 @@ function GetExcelData() {
             allAssignmentList.push({
               _id: data._id,
               subject: data.subject,
-              instructionFile: data.descriptionFile[0],
-              assignDate:
-                new Date(data.expertAssignedDate).toLocaleTimeString() +
-                ", " +
-                new Date(data.expertAssignedDate).toDateString(),
-              expertDeadline:
-                new Date(data.deadline).toLocaleTimeString() +
-                ", " +
-                new Date(data.deadline).toDateString(),
-              deliveryDate:
-                new Date(data.deliveryDate).toLocaleTimeString() +
-                ", " +
-                new Date(data.deliveryDate).toDateString(),
+              expertDeadline: data.expertDeadline
+                ? new Date(
+                    data.expertDeadline[data._id][0]
+                  ).toLocaleTimeString() +
+                  ", " +
+                  new Date(data.expertDeadline[data._id][0]).toDateString()
+                : "",
               pages_or_wordCount:
                 (data.page_word_data || "") +
                 " " +
                 (data.display_page_word || ""),
-              charges:
-                data.charges === "Regular Charges"
-                  ? "Regular Charges"
-                  : "Special Charges",
               amount_Charges_Confirmed: data.charges || "",
-              refund: "",
-              payment_Status: "",
+              status: data.status,
             });
           })
         : console.log("No CP1 Pending Orders");
@@ -158,15 +143,10 @@ function GetExcelData() {
   const headers = [
     { label: "Task ID", key: "_id" },
     { label: "Subject", key: "subject" },
-    { label: "Instruction File", key: "instructionFile" },
-    { label: "Assign Date", key: "assignDate" },
-    { label: "Deadline Date", key: "expertDeadline" },
-    { label: "Delivery Date", key: "deliveryDate" },
+    { label: "Expert Deadline", key: "expertDeadline" },
     { label: "Pages/WordCount", key: "pages_or_wordCount" },
-    { label: "Charges", key: "charges" },
     { label: "Amount(Charges Confirmed)", key: "amount_Charges_Confirmed" },
-    { label: "Refund", key: "refund" },
-    { label: "Payment Status", key: "payment_Status" },
+    { label: "Status", key: "status" },
   ];
 
   return (
@@ -240,7 +220,7 @@ function GetExcelData() {
               });
               setAllData(true);
               setShowData(false);
-              !selectedExpert ? setError(true) : setError(false);
+              !expertEmail ? setError(true) : setError(false);
               await _fetchAllAssignments();
             }}
           >
@@ -259,15 +239,10 @@ function GetExcelData() {
             <Tr>
               <Th>ID</Th>
               <Th>Subject</Th>
-              <Th>Instruction File</Th>
-              <Th>Assign Date</Th>
-              <Th>Deadline Date</Th>
-              <Th>Delivery Date</Th>
+              <Th>Expert Deadline</Th>
               <Th>Pages/WordCount</Th>
-              <Th>Charges</Th>
-              <Th>Amount(Charges Confirmed)</Th>
-              <Th>Refund</Th>
-              <Th>Payment Status</Th>
+              <Th>Payment Confirmed</Th>
+              <Th>Status</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -278,9 +253,7 @@ function GetExcelData() {
                   assignments.map((assignment, index) => (
                     <Tr key={assignment._id} borderWidth="1px">
                       <Td fontWeight={"semibold"} borderWidth="1px">
-                        <Link
-                          href={"/admin/assignment_details/" + assignment._id}
-                        >
+                        <Link href={"/assignment_details/" + assignment._id}>
                           {assignment._id}
                         </Link>
                       </Td>
@@ -292,47 +265,20 @@ function GetExcelData() {
                         {assignment.subject}
                       </Td>
                       <Td
-                        color={"green.600"}
-                        fontWeight={"semibold"}
-                        borderWidth="1px"
-                      >
-                        {assignment.instructionFile}
-                      </Td>
-                      <Td
-                        color={"green.600"}
-                        fontWeight={"semibold"}
-                        borderWidth="1px"
-                      >
-                        {assignment.assignDate}
-                      </Td>
-                      <Td
                         color={"red.600"}
                         fontWeight={"semibold"}
                         borderWidth="1px"
                       >
                         {assignment.expertDeadline}
                       </Td>
-                      <Td
-                        color={"green.600"}
-                        fontWeight={"semibold"}
-                        borderWidth="1px"
-                      >
-                        {assignment.deliveryDate}
-                      </Td>
                       <Td fontWeight={"semibold"} borderWidth="1px">
                         {assignment.pages_or_wordCount}
-                      </Td>
-                      <Td fontWeight={"semibold"} borderWidth="1px">
-                        {assignment.charges}
                       </Td>
                       <Td fontWeight={"semibold"} borderWidth="1px">
                         {assignment.amount_Charges_Confirmed}
                       </Td>
                       <Td fontWeight={"semibold"} borderWidth="1px">
-                        <Checkbox value={assignment.refund} />
-                      </Td>
-                      <Td fontWeight={"semibold"} borderWidth="1px">
-                        <Checkbox value={assignment.payment_Status} />
+                        {assignment.status}
                       </Td>
                     </Tr>
                   ))
@@ -341,9 +287,7 @@ function GetExcelData() {
                     {allAssignments.map((assignment, index) => (
                       <Tr key={assignment._id} borderWidth="1px">
                         <Td fontWeight={"semibold"} borderWidth="1px">
-                          <Link
-                            href={"/admin/assignment_details/" + assignment._id}
-                          >
+                          <Link href={"/assignment_details/" + assignment._id}>
                             {assignment._id}
                           </Link>
                         </Td>
@@ -355,47 +299,20 @@ function GetExcelData() {
                           {assignment.subject}
                         </Td>
                         <Td
-                          color={"green.600"}
-                          fontWeight={"semibold"}
-                          borderWidth="1px"
-                        >
-                          {assignment.instructionFile}
-                        </Td>
-                        <Td
-                          color={"green.600"}
-                          fontWeight={"semibold"}
-                          borderWidth="1px"
-                        >
-                          {assignment.assignDate}
-                        </Td>
-                        <Td
                           color={"red.600"}
                           fontWeight={"semibold"}
                           borderWidth="1px"
                         >
                           {assignment.expertDeadline}
                         </Td>
-                        <Td
-                          color={"green.600"}
-                          fontWeight={"semibold"}
-                          borderWidth="1px"
-                        >
-                          {assignment.deliveryDate}
-                        </Td>
                         <Td fontWeight={"semibold"} borderWidth="1px">
                           {assignment.pages_or_wordCount}
-                        </Td>
-                        <Td fontWeight={"semibold"} borderWidth="1px">
-                          {assignment.charges}
                         </Td>
                         <Td fontWeight={"semibold"} borderWidth="1px">
                           {assignment.amount_Charges_Confirmed}
                         </Td>
                         <Td fontWeight={"semibold"} borderWidth="1px">
-                          <Checkbox value={assignment.refund} />
-                        </Td>
-                        <Td fontWeight={"semibold"} borderWidth="1px">
-                          <Checkbox value={assignment.payment_Status} />
+                          {assignment.status}
                         </Td>
                       </Tr>
                     ))}
