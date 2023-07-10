@@ -18,19 +18,23 @@ import {
   useDisclosure,
   VStack,
 } from "@chakra-ui/react";
-import { arrayUnion, doc, updateDoc } from "firebase/firestore";
+import {
+  arrayUnion,
+  doc,
+  updateDoc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+} from "firebase/firestore";
 import { ArrowForwardIcon, AttachmentIcon } from "@chakra-ui/icons";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { db } from "../services/firebase";
 import { apiUrl } from "../services/contants";
+import { useMemo } from "react";
 
-function ConfirmedOrderMessage({
-  assignedExpertMessages,
-  operatorExpertChat,
-  loading,
-}) {
+function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
   const navigate = useNavigate();
   const [id, setId] = useState("");
   const inputFileOperatorExpert = useRef(null);
@@ -38,14 +42,77 @@ function ConfirmedOrderMessage({
   const [openModalId, setOpenModalId] = useState(null);
   const { onOpen, onClose } = useDisclosure();
 
+  const [messageData, setMessageData] = useState([]);
+  const [confirmedOperatorExpertChat, setConfirmedOperatorExpertChat] =
+    useState({});
+  const [confirmedOrders, setConfirmedOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [expertChatData, setExpertChatData] = useState([]);
+  let confirmOrderAssignedExpertMessages, confirmedMessageData;
+
+  const expertMessageCounter = useMemo(() => {
+    if (Object.keys(confirmedOperatorExpertChat).length !== 0) {
+      const lastMessage =
+        confirmedOperatorExpertChat &&
+        openModalId &&
+        confirmedOperatorExpertChat[openModalId][
+          confirmedOperatorExpertChat[openModalId].length - 1
+        ];
+      return (lastMessage && lastMessage.expertMsgCount) || 0;
+    }
+    return 0;
+  }, [confirmedOperatorExpertChat]);
+
   useEffect(() => {
     (async () => {
       await _fetchToken();
     })();
   }, []);
 
+  useEffect(() => {
+    setLoading(true);
+    _fetchMessages();
+    _fetchConfirmedOrders();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (confirmedMessageData && confirmedMessageData.length !== 0) {
+        confirmedMessageData.map(async (msg) => {
+          await _fetchConfirmedOperatorExpertChat(msg.expertEmail, msg._id);
+        });
+      }
+    })();
+  }, [messageData, confirmedOrders]);
+
+  useEffect(() => {
+    if (Object.keys(confirmedOperatorExpertChat).length !== 0) {
+      const confirmOrderAssignedExpertChat =
+        confirmOrderAssignedExpertMessages &&
+        confirmOrderAssignedExpertMessages.filter(
+          (data) => data.chat.length !== 0
+        );
+
+      let totalMessageCount =
+        confirmOrderAssignedExpertChat &&
+        confirmOrderAssignedExpertChat
+          .filter((data) => data && data.chat)
+          .reduce((acc, val) => {
+            if (val && val.chat.length !== 0) {
+              return acc + val.chat[val.chat.length - 1].operatorMsgCount;
+            } else {
+              return acc;
+            }
+          }, 0);
+      setMessageCount(totalMessageCount);
+      setSpinnerLoading(false);
+    } else {
+      setSpinnerLoading(false);
+    }
+  }, [confirmedOperatorExpertChat]);
+
   async function _fetchToken() {
-    let userEmail = localStorage.getItem("userEmail");
+    let userEmail = localStorage.getItem("expertEmail");
     setId(userEmail);
     try {
       const response = await axios.get(
@@ -60,34 +127,137 @@ function ConfirmedOrderMessage({
     }
   }
 
-  async function openMessageModal(data) {
+  async function _fetchMessages() {
     try {
-      let userToken = localStorage.getItem("expertToken");
-      if (userToken == null) {
-        navigate("/expert/login");
+      const response = await axios.get(apiUrl + "/messages");
+      let data = await response.data;
+      if (data.success) {
+        data.result.length !== 0
+          ? setMessageData(data.result)
+          : setLoading(false);
       }
     } catch (err) {
       console.log(err);
     }
+  }
 
+  async function _fetchConfirmedOrders() {
+    try {
+      let clientToken = localStorage.getItem("expertToken");
+      if (clientToken == null) {
+        navigate("/expert/login");
+      }
+
+      let config = {
+        headers: { Authorization: `Bearer ${clientToken}` },
+      };
+      const response = await axios.post(
+        apiUrl + "/assignment/fetch",
+        {
+          status: {
+            $in: [
+              "Expert Assigned",
+              "Raw Submission",
+              "Proof Read",
+              "CP2 Done",
+            ],
+          },
+        },
+        config
+      );
+      let data = await response.data.assignmentData;
+      if (data && data.length !== 0) {
+        setConfirmedOrders(data);
+      } else {
+        console.log("Assignment Not Found");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function _fetchConfirmedOperatorExpertChat(expertEmail, assignment_id) {
+    try {
+      const chatName =
+        expertEmail + "_" + "operator_expert_chat" + "_" + assignment_id;
+
+      const chatDoc = await getDoc(doc(db, "chat", chatName));
+
+      if (!chatDoc.exists()) {
+        await setDoc(doc(db, "chat", chatName), {
+          conversation: [],
+        });
+      }
+      const unsubChat = onSnapshot(doc(db, "chat", chatName), (doc) => {
+        setConfirmedOperatorExpertChat((operatorExpertChat) => {
+          return {
+            ...operatorExpertChat,
+            [assignment_id]: doc.data().conversation,
+          };
+        });
+
+        setLoading(false);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  if (confirmedOrders.length !== 0 && messageData.length !== 0) {
+    confirmedMessageData = messageData.filter((data) => {
+      return confirmedOrders.some((val) => val._id === data._id);
+    });
+  }
+  if (Object.keys(confirmedOperatorExpertChat).length !== 0) {
+    confirmOrderAssignedExpertMessages = Object.keys(
+      confirmedOperatorExpertChat
+    )
+      .map((key) => {
+        const data = confirmedOperatorExpertChat[key];
+        const values =
+          data.length !== 0 &&
+          data.filter((f) => {
+            return f.user !== id;
+          });
+        const date =
+          data.length !== 0 &&
+          values.length !== 0 &&
+          new Date(values[values.length - 1].time).toLocaleDateString("en-US");
+
+        return {
+          id: key,
+          chat: values,
+          date: date,
+        };
+      })
+      .filter((data) => data && data.chat);
+  }
+
+  async function openMessageModal(data) {
+    setExpertChatData(data);
     setOpenModalId(data.id);
   }
 
-  function MessageModal({ assignment, assignmentID, openModalId }) {
+  function MessageModal({ expertChatData, openModalId }) {
     const MessageModalDis = useDisclosure();
 
     useEffect(() => {
-      if (assignmentID === openModalId) {
+      if (openModalId) {
         MessageModalDis.onOpen();
       } else {
         MessageModalDis.onClose();
       }
-    }, [assignmentID, openModalId]);
+    }, [openModalId]);
+
+    const handleCloseModal = () => {
+      setOpenModalId(null);
+      MessageModalDis.onClose();
+    };
 
     return (
       <Modal
         size={"lg"}
-        onClose={MessageModalDis.onClose}
+        onClose={handleCloseModal}
         isOpen={MessageModalDis.isOpen}
         onOpen={MessageModalDis.onOpen}
         isCentered
@@ -119,47 +289,49 @@ function ConfirmedOrderMessage({
                   alignItems={"start"}
                   width={"100%"}
                 >
-                  {operatorExpertChat[assignmentID] &&
-                    operatorExpertChat[assignmentID].map((msg, index) => {
-                      return (
-                        <Box
-                          display={
-                            msg.type === "TEXT"
-                              ? "flex"
-                              : msg.type === "MEDIA"
-                              ? "flex"
-                              : "none"
-                          }
-                          alignSelf={
-                            msg.user === id ? "flex-end" : "flex-start"
-                          }
-                          flexWrap={true}
-                          padding={2}
-                          borderRadius={"md"}
-                          maxWidth="70%"
-                          bgColor={msg.user === id ? "blue.100" : "green.100"}
-                          key={index}
-                        >
-                          <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                            <Text
-                              display={msg.type === "TEXT" ? "flex" : "none"}
-                              maxWidth={"100%"}
-                            >
-                              {msg.msg}
-                            </Text>
-                            <Link
-                              color={"blue"}
-                              fontWeight={"bold"}
-                              display={msg.type === "MEDIA" ? "flex" : "none"}
-                              maxWidth={"100%"}
-                              href={msg.msg}
-                            >
-                              {msg.msg && msg.msg.substring(62)}
-                            </Link>
-                          </VStack>
-                        </Box>
-                      );
-                    })}
+                  {confirmedOperatorExpertChat[openModalId] &&
+                    confirmedOperatorExpertChat[openModalId].map(
+                      (msg, index) => {
+                        return (
+                          <Box
+                            display={
+                              msg.type === "TEXT"
+                                ? "flex"
+                                : msg.type === "MEDIA"
+                                ? "flex"
+                                : "none"
+                            }
+                            alignSelf={
+                              msg.user === id ? "flex-end" : "flex-start"
+                            }
+                            flexWrap={true}
+                            padding={2}
+                            borderRadius={"md"}
+                            maxWidth="70%"
+                            bgColor={msg.user === id ? "blue.100" : "green.100"}
+                            key={index}
+                          >
+                            <VStack maxWidth="100%" overflowWrap={"break-word"}>
+                              <Text
+                                display={msg.type === "TEXT" ? "flex" : "none"}
+                                maxWidth={"100%"}
+                              >
+                                {msg.msg}
+                              </Text>
+                              <Link
+                                color={"blue"}
+                                fontWeight={"bold"}
+                                display={msg.type === "MEDIA" ? "flex" : "none"}
+                                maxWidth={"100%"}
+                                href={msg.msg}
+                              >
+                                {msg.msg && msg.msg.substring(62)}
+                              </Link>
+                            </VStack>
+                          </Box>
+                        );
+                      }
+                    )}
                 </VStack>
                 <InputGroup>
                   <Input type="text" id="addChatOperatorExpert" />
@@ -167,6 +339,8 @@ function ConfirmedOrderMessage({
                     type="file"
                     id="addFileOperatorExpert"
                     onChange={async () => {
+                      let userEmail = localStorage.getItem("expertEmail");
+
                       let fileUrl = "";
                       if (inputFileOperatorExpert) {
                         onOpen();
@@ -197,12 +371,11 @@ function ConfirmedOrderMessage({
                                 doc(
                                   db,
                                   "chat",
-                                  assignment.chat[assignment.chat.length - 1]
-                                    .user +
+                                  userEmail +
                                     "_" +
-                                    id +
+                                    "operator_expert_chat" +
                                     "_" +
-                                    assignment.id
+                                    openModalId
                                 ),
                                 {
                                   conversation: arrayUnion({
@@ -210,6 +383,9 @@ function ConfirmedOrderMessage({
                                     time: Date.now(),
                                     type: "MEDIA",
                                     user: id,
+                                    expertMsgCount: expertMessageCounter + 1,
+                                    operatorMsgCount: 0,
+                                    newMessageCount: 0,
                                   }),
                                 }
                               );
@@ -240,7 +416,8 @@ function ConfirmedOrderMessage({
                     <Button
                       id="sendButton"
                       onClick={async () => {
-                        let userToken = localStorage.getItem("userToken");
+                        let userToken = localStorage.getItem("expertToken");
+                        let userEmail = localStorage.getItem("expertEmail");
                         let Regex =
                           /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
                         let textInput = document.getElementById(
@@ -259,12 +436,11 @@ function ConfirmedOrderMessage({
                               doc(
                                 db,
                                 "chat",
-                                assignment.chat[assignment.chat.length - 1]
-                                  .user +
+                                userEmail +
                                   "_" +
-                                  id +
+                                  "operator_expert_chat" +
                                   "_" +
-                                  assignmentID
+                                  openModalId
                               ),
                               {
                                 conversation: arrayUnion({
@@ -272,6 +448,9 @@ function ConfirmedOrderMessage({
                                   time: Date.now(),
                                   type: "TEXT",
                                   user: id,
+                                  expertMsgCount: expertMessageCounter + 1,
+                                  operatorMsgCount: 0,
+                                  newMessageCount: 0,
                                 }),
                               }
                             );
@@ -282,8 +461,11 @@ function ConfirmedOrderMessage({
                               const response = await axios.post(
                                 apiUrl + "/messages",
                                 {
-                                  id: assignmentID,
-                                  expertEmail: assignment.assignedExpert,
+                                  id: openModalId,
+                                  expertEmail:
+                                    expertChatData.chat[
+                                      expertChatData.chat.length - 1
+                                    ].user,
                                 },
                                 config
                               );
@@ -312,25 +494,25 @@ function ConfirmedOrderMessage({
 
   async function readMessages(_assignmentId) {
     try {
-      let userToken = localStorage.getItem("expertToken");
-      if (userToken == null) {
-        navigate("/admin/login");
-      }
-
-      let config = {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      };
-
-      if (operatorExpertChat[_assignmentId]) {
-        const newChat = operatorExpertChat[_assignmentId].slice();
+      if (confirmedOperatorExpertChat[_assignmentId]) {
+        const newChat = confirmedOperatorExpertChat[_assignmentId].slice();
         const lastMsg = newChat.pop();
-        let userEmail = localStorage.getItem("userEmail");
         const message = await updateDoc(
-          doc(db, "chat", lastMsg.user + "_" + userEmail + "_" + _assignmentId),
+          doc(
+            db,
+            "chat",
+            id + "_" + "operator_expert_chat" + "_" + _assignmentId
+          ),
           {
-            conversation: [...newChat, { ...lastMsg, newMessageCount: 0 }],
+            conversation: [
+              ...newChat,
+              {
+                ...lastMsg,
+                newMessageCount: 0,
+                operatorMsgCount: 0,
+                expertMsgCount: 0,
+              },
+            ],
           }
         );
       }
@@ -338,20 +520,15 @@ function ConfirmedOrderMessage({
       console.log(err);
     }
   }
+
   return (
     <>
-      {assignedExpertMessages &&
-        assignedExpertMessages
-          .filter((data) => data.chat.length !== 0)
-          .map((data) => {
-            return (
-              <MessageModal
-                assignment={data}
-                assignmentID={data.id}
-                openModalId={openModalId}
-              />
-            );
-          })}
+      {openModalId && (
+        <MessageModal
+          expertChatData={expertChatData}
+          openModalId={openModalId}
+        />
+      )}
       <Box
         display={"block"}
         borderWidth="1px"
@@ -378,8 +555,8 @@ function ConfirmedOrderMessage({
             {loading ? (
               <Spinner />
             ) : (
-              assignedExpertMessages &&
-              assignedExpertMessages
+              confirmOrderAssignedExpertMessages &&
+              confirmOrderAssignedExpertMessages
                 .filter((data) => data.chat.length !== 0)
                 .map((data) => {
                   return (
@@ -402,10 +579,9 @@ function ConfirmedOrderMessage({
                           </a>
                           &nbsp;
                           {data.chat.length !== 0 &&
-                            data.chat[data.chat.length - 1].newMessageCount !==
+                            data.chat[data.chat.length - 1].operatorMsgCount !==
                               0 && (
                               <div
-                                className="text-center"
                                 style={{
                                   width: "25px",
                                   height: "25px",
@@ -415,12 +591,13 @@ function ConfirmedOrderMessage({
                                   margin: "2px 5px",
                                   color: "#fff",
                                   fontWeight: "bold",
+                                  textAlign: "center",
                                 }}
                               >
                                 {data.chat[data.chat.length - 1]
-                                  .newMessageCount !== 0 &&
+                                  .operatorMsgCount !== 0 &&
                                   data.chat[data.chat.length - 1]
-                                    .newMessageCount}
+                                    .operatorMsgCount}
                               </div>
                             )}
                         </Box>
@@ -441,7 +618,7 @@ function ConfirmedOrderMessage({
                         <Button
                           onClick={async () => {
                             await openMessageModal(data);
-                            readMessages(data.id.split("_")[0]);
+                            await readMessages(data.id);
                           }}
                         >
                           Reply

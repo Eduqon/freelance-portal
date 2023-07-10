@@ -34,7 +34,7 @@ import { useMemo } from "react";
 function ExpertOpertorChat() {
   const [assignment, setAssignment] = useState();
   const [loading, setLoading] = useState(true);
-  const [expertID, setExpertID] = useState();
+  const [expertID, setExpertID] = useState("");
 
   const [token, setToken] = useState("");
   const { onOpen, onClose } = useDisclosure();
@@ -72,13 +72,11 @@ function ExpertOpertorChat() {
     }
   }
 
-  async function _fetchInProcessOperatorExpertChat(
-    operatorEmail,
-    assignment_id
-  ) {
+  async function _fetchInProcessOperatorExpertChat(assignment_id) {
     let expertEmail = localStorage.getItem("expertEmail");
     try {
-      const chatName = expertEmail + "_" + operatorEmail + "_" + assignment_id;
+      const chatName =
+        expertEmail + "_" + "InProcess_order_chat" + "_" + assignment_id;
       const chatDoc = await getDoc(doc(db, "chat", chatName));
       if (!chatDoc.exists()) {
         await setDoc(doc(db, "chat", chatName), {
@@ -94,6 +92,8 @@ function ExpertOpertorChat() {
   }
 
   async function _fetchToken() {
+    let expertEmail = localStorage.getItem("expertEmail");
+    setExpertID(expertEmail);
     try {
       const response = await axios.get(
         apiUrl + "/util/sas-token?container_name=assignment-dscp"
@@ -176,11 +176,7 @@ function ExpertOpertorChat() {
                   new Date(data[0].deadline).toDateString(),
               });
               await _fetchToken();
-              await _fetchInProcessOperatorExpertChat(
-                data[0].assignedOperator,
-                data[0]._id,
-                expertID
-              );
+              await _fetchInProcessOperatorExpertChat(data[0]._id);
               await _fetchMessages(data[0]._id);
             } else {
               console.log("Assignment Not Found");
@@ -366,9 +362,9 @@ function ExpertOpertorChat() {
                           doc(
                             db,
                             "chat",
-                            assignment.assignedExpert +
+                            expertID +
                               "_" +
-                              assignment.assignedOperator +
+                              "InProcess_order_chat" +
                               "_" +
                               assignment.id
                           ),
@@ -377,7 +373,10 @@ function ExpertOpertorChat() {
                               msg: fileUrl,
                               time: Date.now(),
                               type: "MEDIA",
-                              user: assignment.assignedExpert,
+                              user: expertID,
+                              newMessageCount: newMessageCounter + 1,
+                              expertMsgCount: 0,
+                              operatorMsgCount: 0,
                             }),
                           }
                         );
@@ -422,7 +421,7 @@ function ExpertOpertorChat() {
                       const chatName =
                         expertID +
                         "_" +
-                        assignment.assignedOperator +
+                        "InProcess_order_chat" +
                         "_" +
                         assignment.id;
 
@@ -442,6 +441,8 @@ function ExpertOpertorChat() {
                               type: "TEXT",
                               user: expertID,
                               newMessageCount: newMessageCounter + 1,
+                              expertMsgCount: 0,
+                              operatorMsgCount: 0,
                             }),
                           }
                         );

@@ -77,6 +77,14 @@ function SubmitQuote() {
     return 0;
   }, [operatorExpertChat, assignment]);
 
+  const expertMessageCounter = useMemo(() => {
+    if (assignment && operatorExpertChat.length) {
+      const lastMessage = operatorExpertChat[operatorExpertChat.length - 1];
+      return (lastMessage && lastMessage.expertMsgCount) || 0;
+    }
+    return 0;
+  }, [operatorExpertChat, assignment]);
+
   let stickyNotesList = [];
   let qcNotesList = [];
 
@@ -124,10 +132,11 @@ function SubmitQuote() {
     }
   }
 
-  async function _fetchOperatorExpertChat(operatorEmail, assignment_id) {
+  async function _fetchOperatorExpertChat(assignment_id) {
     let expertEmail = localStorage.getItem("expertEmail");
     try {
-      const chatName = expertEmail + "_" + operatorEmail + "_" + assignment_id;
+      const chatName =
+        expertEmail + "_" + "operator_expert_chat" + "_" + assignment_id;
       const chatDoc = await getDoc(doc(db, "chat", chatName));
       if (!chatDoc.exists()) {
         await setDoc(doc(db, "chat", chatName), {
@@ -415,10 +424,7 @@ function SubmitQuote() {
               await _fetchAssignmentStickyNotes();
               await _fetchAssignmentQcNotes();
               await _fetchQcExpertChat(data[0].assignedQC, data[0]._id);
-              await _fetchOperatorExpertChat(
-                data[0].assignedOperator,
-                data[0]._id
-              );
+              await _fetchOperatorExpertChat(data[0]._id);
               await _fetchMessages(data[0]._id);
             } else {
               console.log("Assignment Not Found");
@@ -1051,9 +1057,6 @@ function SubmitQuote() {
         </VStack>{" "}
       </Box>{" "}
       <Box
-        // display={
-        //   assignment.assignedOperator == undefined ? "block" : "block"
-        // }
         borderWidth="1px"
         borderRadius="md"
         width={"sm"}
@@ -1075,50 +1078,67 @@ function SubmitQuote() {
           <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
             {" "}
             {operatorExpertChat.map((messageItem, index) => (
-              <Box
-                display={
-                  messageItem.type === "TEXT"
-                    ? "flex"
-                    : messageItem.type === "MEDIA"
-                    ? "flex"
-                    : "none"
-                }
-                alignSelf={
-                  messageItem.user === assignment.assignedExpert
-                    ? "flex-end"
-                    : "flex-start"
-                }
-                flexWrap={true}
-                padding={2}
-                borderRadius={"md"}
-                maxWidth="70%"
-                bgColor={
-                  messageItem.user === assignment.assignedExpert
-                    ? "blue.100"
-                    : "green.100"
-                }
-                key={index}
-              >
-                <VStack maxWidth="100%" overflowWrap={"break-word"}>
+              <>
+                {messageItem.user !== assignment.assignedExpert && (
                   <Text
                     display={messageItem.type === "TEXT" ? "flex" : "none"}
+                    alignSelf={
+                      messageItem.user === assignment.assignedExpert
+                        ? "flex-end"
+                        : "flex-start"
+                    }
                     maxWidth={"100%"}
+                    color={"gray.500"}
+                    fontSize={"sm"}
                   >
-                    {" "}
-                    {messageItem.msg}{" "}
-                  </Text>{" "}
-                  <Link
-                    color={"blue"}
-                    fontWeight={"bold"}
-                    display={messageItem.type === "MEDIA" ? "flex" : "none"}
-                    maxWidth={"100%"}
-                    href={messageItem.msg}
-                  >
-                    {" "}
-                    {messageItem.msg && messageItem.msg.substring(62)}{" "}
-                  </Link>{" "}
-                </VStack>{" "}
-              </Box>
+                    {messageItem.user}
+                  </Text>
+                )}
+                <Box
+                  display={
+                    messageItem.type === "TEXT"
+                      ? "flex"
+                      : messageItem.type === "MEDIA"
+                      ? "flex"
+                      : "none"
+                  }
+                  alignSelf={
+                    messageItem.user === assignment.assignedExpert
+                      ? "flex-end"
+                      : "flex-start"
+                  }
+                  flexWrap={true}
+                  padding={2}
+                  borderRadius={"md"}
+                  maxWidth="70%"
+                  bgColor={
+                    messageItem.user === assignment.assignedExpert
+                      ? "blue.100"
+                      : "green.100"
+                  }
+                  key={index}
+                >
+                  <VStack maxWidth="100%" overflowWrap={"break-word"}>
+                    <Text
+                      display={messageItem.type === "TEXT" ? "flex" : "none"}
+                      maxWidth={"100%"}
+                    >
+                      {" "}
+                      {messageItem.msg}{" "}
+                    </Text>{" "}
+                    <Link
+                      color={"blue"}
+                      fontWeight={"bold"}
+                      display={messageItem.type === "MEDIA" ? "flex" : "none"}
+                      maxWidth={"100%"}
+                      href={messageItem.msg}
+                    >
+                      {" "}
+                      {messageItem.msg && messageItem.msg.substring(62)}{" "}
+                    </Link>{" "}
+                  </VStack>{" "}
+                </Box>
+              </>
             ))}{" "}
           </VStack>{" "}
           <InputGroup>
@@ -1216,7 +1236,7 @@ function SubmitQuote() {
                           "chat",
                           assignment.assignedExpert +
                             "_" +
-                            assignment.assignedOperator +
+                            "operator_expert_chat" +
                             "_" +
                             assignment.id
                         ),
@@ -1226,7 +1246,9 @@ function SubmitQuote() {
                             time: Date.now(),
                             type: "TEXT",
                             user: assignment.assignedExpert,
+                            expertMsgCount: expertMessageCounter + 1,
                             newMessageCount: newMessageCounter + 1,
+                            operatorMsgCount: 0,
                           }),
                         }
                       );
