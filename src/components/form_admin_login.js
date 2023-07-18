@@ -61,9 +61,9 @@ export const FormAdminLogin = () => {
         );
         if (response.data.success === true) {
           localStorage.setItem("userEmail", id);
+          localStorage.setItem("expertEmail", id);
           navigate("/expert/portal");
         } else if (response.status == 203) {
-          console.log({ response });
           localStorage.setItem("expertToken", response.data.token);
           expertToken = response.data.token;
 
@@ -82,6 +82,7 @@ export const FormAdminLogin = () => {
 
             if (response.data.success === true) {
               localStorage.setItem("userEmail", id);
+              localStorage.setItem("expertEmail", id);
               navigate("/expert/portal");
             }
           } catch (error) {

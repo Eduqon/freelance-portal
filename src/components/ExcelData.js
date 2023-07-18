@@ -39,13 +39,13 @@ function GetExcelData() {
   let navigate = useNavigate();
 
   useEffect(() => {
-    const email = localStorage.getItem("userEmail");
+    const email = localStorage.getItem("expertEmail");
     if (email) {
       setExpertEmail(email);
     }
   }, [expertEmail]);
 
-  async function _fetchAssignments() {
+  async function _fetchAssignments(statusFilter) {
     try {
       let userToken = localStorage.getItem("expertToken");
       if (userToken == null) {
@@ -68,9 +68,12 @@ function GetExcelData() {
             new Date(data.expertDeadline[data._id][0]).toLocaleDateString() <=
               new Date(date.endDate).toLocaleDateString()
         );
+      const statusFilteredData = statusFilter
+        ? filterData.filter((data) => data.status === statusFilter)
+        : filterData;
       assignmentList = [];
-      filterData.length !== 0
-        ? filterData.forEach((data, index) => {
+      statusFilteredData.length !== 0
+        ? statusFilteredData.forEach((data, index) => {
             assignmentList.push({
               _id: data._id,
               subject: data.subject,
@@ -148,6 +151,12 @@ function GetExcelData() {
     { label: "Amount(Charges Confirmed)", key: "amount_Charges_Confirmed" },
     { label: "Status", key: "status" },
   ];
+
+  const status = ["Expert Assigned", "Proof Read", "CP2 Done"];
+
+  async function handleStatus(selectedValue) {
+    _fetchAssignments(selectedValue);
+  }
 
   return (
     <>
@@ -242,7 +251,26 @@ function GetExcelData() {
               <Th>Expert Deadline</Th>
               <Th>Pages/WordCount</Th>
               <Th>Payment Confirmed</Th>
-              <Th>Status</Th>
+              <Th>
+                {showData ? (
+                  <select
+                    style={{
+                      background: "none",
+                      outline: "none",
+                      fontWeight: "600",
+                      fontSize: "1rem",
+                    }}
+                    onChange={(e) => handleStatus(e.target.value)}
+                  >
+                    <option>Select Status</option>
+                    {status.map((val) => (
+                      <option value={val}>{val}</option>
+                    ))}
+                  </select>
+                ) : (
+                  "Status"
+                )}
+              </Th>
             </Tr>
           </Thead>
           <Tbody>

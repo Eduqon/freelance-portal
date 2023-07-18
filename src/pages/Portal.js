@@ -106,12 +106,10 @@ function Portal() {
                   tabIndex === 1 ? { display: "block" } : { display: "none" }
                 }
               >
-                {tabIndex === 1 && (
-                  <Messages
-                    setMessageCount={setMessageCount}
-                    setSpinnerLoading={setLoading}
-                  />
-                )}
+                <Messages
+                  setMessageCount={setMessageCount}
+                  setSpinnerLoading={setLoading}
+                />
               </TabPanel>
               <TabPanel
                 style={
