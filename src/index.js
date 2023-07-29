@@ -8,6 +8,7 @@ import ExpertOpertorChat from "./pages/ExpertOperatorChat";
 import Portal from "./pages/Portal";
 import AdminLogin from "./pages/Login";
 import AssignmentDetails from "./pages/AssignmentDetails";
+import IsVerify from "./components/IsVerify";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -16,6 +17,7 @@ ReactDOM.render(
         <Routes>
           <Route path="/expert/login" element={<AdminLogin />} />
           <Route path="/expert/portal" element={<Portal />} />
+          <Route path="/verify/:Id" element={<IsVerify />} />
           <Route
             path="/assignment_details/:assignmentID"
             element={<AssignmentDetails />}
