@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
-import { apiUrl } from "../services/contants";
-import { useParams, useNavigate } from "react-router-dom";
+import { apiUrl } from "../../../services/contants";
+// import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { db } from "../services/firebase";
+import { db } from "../../../services/firebase";
 import {
   arrayUnion,
   doc,
@@ -55,7 +56,8 @@ import {
   AttachmentIcon,
   AddIcon,
 } from "@chakra-ui/icons";
-import LoginLayout from "./LoginLayout";
+import QcLoginLayout from "./QcLoginLayout";
+// import AdminLayout from "..";
 
 function AssignmentDetails() {
   const [assignment, setAssignment] = useState();
@@ -77,7 +79,6 @@ function AssignmentDetails() {
   const [id, setId] = useState("");
   const [clientId, setChatClientId] = useState("");
 
-  let params = useParams();
   let navigate = useNavigate();
 
   let stickyNotesList = [];
@@ -107,7 +108,7 @@ function AssignmentDetails() {
     _fetchAssignmentDetails();
     setUserRole(localStorage.getItem("userRole"));
     setTabIndex(Number(localStorage.getItem("tabIndex")));
-  }, [params]);
+  }, [navigate]);
 
   async function _fetchToken() {
     try {
@@ -125,9 +126,10 @@ function AssignmentDetails() {
 
   async function _fetchQuotations() {
     try {
-      let userToken = localStorage.getItem("expertToken");
+      let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/expert/login");
+        // navigate.replace("/admin/login");
+        navigate('/qclogin')
       }
 
       let config = {
@@ -136,7 +138,7 @@ function AssignmentDetails() {
       const response = await axios.get(
         apiUrl +
           "/assignment/quotes/fetch?assignment_id=" +
-          params.assignmentID,
+          navigate.query.assignmentID,
         config
       );
       let data = await response.data.result.expertQuotations;
@@ -161,7 +163,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentFiles() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -169,7 +171,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/assignmentFiles/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result.assignmentFiles;
@@ -195,7 +197,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchSubmissions() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -203,7 +205,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/submissions/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result.workSubmissions;
@@ -229,7 +231,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchActions() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -237,7 +239,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/activity/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -263,7 +265,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentQcNotes() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -271,7 +273,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/qc-comments/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -291,7 +293,7 @@ function AssignmentDetails() {
   }
 
   async function _addAssignmentQcNote() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
     let userEmail = localStorage.getItem("userEmail");
     let userName = localStorage.getItem("userName");
 
@@ -306,7 +308,7 @@ function AssignmentDetails() {
       const response = await axios.post(
         apiUrl + "/assignment/comments/QCToExpert",
         {
-          assignmentId: params.assignmentID,
+          assignmentId: navigate.query.assignmentID,
           expertId: assignment.assignedExpert,
           commentsFromQC: {
             _id: userEmail,
@@ -326,7 +328,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentStickyNotes() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -334,7 +336,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/comments/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -354,7 +356,7 @@ function AssignmentDetails() {
   }
 
   async function _addAssignmentStickyNote() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
     let userEmail = localStorage.getItem("userEmail");
     let userName = localStorage.getItem("userName");
 
@@ -369,7 +371,7 @@ function AssignmentDetails() {
       const response = await axios.post(
         apiUrl + "/assignment/comments/operatorToExpert",
         {
-          assignmentId: params.assignmentID,
+          assignmentId: navigate.query.assignmentID,
           expertId: assignment.assignedExpert,
           notesFromOperator: {
             _id: userEmail,
@@ -390,18 +392,17 @@ function AssignmentDetails() {
 
   async function _fetchAssignmentDetails() {
     try {
-      let userToken = localStorage.getItem("expertToken");
+      let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/expert/login");
+        // navigate.replace("/admin/login");
+        navigate('/qclogin')
       }
 
       let config = {
         headers: { Authorization: `Bearer ${userToken}` },
       };
-      console.log({ id: params.assignmentID, userToken });
-      //   return;
       const response = await axios.get(
-        apiUrl + "/assignment/fetch?_id=" + params.assignmentID,
+        apiUrl + "/assignment/fetch?_id=" + navigate.query.assignmentID,
         config
       );
       let data = await response.data.assignmentData;
@@ -513,7 +514,8 @@ function AssignmentDetails() {
   async function _fetchOperatorExpertChat(expertEmail, assignment_id) {
     let userEmail = localStorage.getItem("userEmail");
     try {
-      const chatName = expertEmail + "_" + userEmail + "_" + assignment_id;
+      const chatName =
+        expertEmail + "_" + "operator_expert_chat" + "_" + assignment_id;
       const chatDoc = await getDoc(doc(db, "chat", chatName));
       if (!chatDoc.exists()) {
         await setDoc(doc(db, "chat", chatName), {
@@ -721,7 +723,7 @@ function AssignmentDetails() {
                   if (checkedListTemp.length === 0) {
                     window.alert("Select Files to Send");
                   } else {
-                    let userToken = localStorage.getItem("expertToken");
+                    let userToken = localStorage.getItem("userToken");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };
@@ -734,7 +736,7 @@ function AssignmentDetails() {
                           const responseDeadline = await axios.post(
                             apiUrl + "/assignment/update",
                             {
-                              _id: params.assignmentID,
+                              _id: navigate.query.assignmentID,
                               status: "CP2 Done",
                               currentState: 8,
                               order_placed_time: {
@@ -748,7 +750,7 @@ function AssignmentDetails() {
                           let response = await axios.post(
                             apiUrl + "/assignment/final-delivery",
                             {
-                              _id: params.assignmentID,
+                              _id: navigate.query.assignmentID,
                               emailToDeliver: customMail.value,
                               fileLinks: checkedListTemp,
                             },
@@ -771,7 +773,7 @@ function AssignmentDetails() {
                         const responseDeadline = await axios.post(
                           apiUrl + "/assignment/update",
                           {
-                            _id: params.assignmentID,
+                            _id: navigate.query.assignmentID,
                             status: "CP2 Done",
                             currentState: 8,
                             order_placed_time: {
@@ -785,7 +787,7 @@ function AssignmentDetails() {
                         let response = await axios.post(
                           apiUrl + "/assignment/final-delivery",
                           {
-                            _id: params.assignmentID,
+                            _id: navigate.query.assignmentID,
                             emailToDeliver: assignment.client_id,
                             fileLinks: checkedListTemp,
                           },
@@ -881,7 +883,7 @@ function AssignmentDetails() {
                   if (fileCategory.value === "") {
                     window.alert("Please Enter File Category");
                   } else {
-                    let userToken = localStorage.getItem("expertToken");
+                    let userToken = localStorage.getItem("userToken");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };
@@ -889,7 +891,7 @@ function AssignmentDetails() {
                       let response = await axios.post(
                         apiUrl + "/assignment/assignmentFiles",
                         {
-                          _id: params.assignmentID,
+                          _id: navigate.query.assignmentID,
                           files: [
                             {
                               category: fileCategory.value,
@@ -924,7 +926,8 @@ function AssignmentDetails() {
   }
   return (
     <>
-      <LoginLayout />
+      {/* <AdminLayout /> */}
+      <QcLoginLayout/>
       <VStack alignItems={"start"} margin={5}>
         <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
@@ -938,15 +941,15 @@ function AssignmentDetails() {
         <SendToClientModal />
         <HStack>
           <Button
-            onClick={async () => {
-              // navigate("/expert/portal");
-              navigate('/+qcorder')
 
-              localStorage.setItem("backButton", true);
-              localStorage.setItem("tabIndex", tabIndex);
+            onClick={async () => {
+                console.log('tap....');
+            //   navigate("/qcorder");
+            //   localStorage.setItem("backButton", true);
+            //   localStorage.setItem("tabIndex", tabIndex);
             }}
           >
-            Back to order
+            Back to orders
           </Button>
           <Button
             leftIcon={<RepeatIcon />}
@@ -1217,7 +1220,20 @@ function AssignmentDetails() {
               </VStack>
             </VStack>
           </Box>
-          <Box borderWidth="1px" borderRadius="md" width={"xl"}>
+          <Box
+            display={
+              userRole === "QC" ||
+              userRole === "Admin" ||
+              userRole === "Super Admin" ||
+              userRole === "Operator" ||
+              userRole === "Sales"
+                ? "block"
+                : "none"
+            }
+            borderWidth="1px"
+            borderRadius="md"
+            width={"xl"}
+          >
             <Box bgColor="gray.200" p={4}>
               <Heading fontSize={"xl"}>Expert Submissions</Heading>
             </Box>
@@ -1256,7 +1272,16 @@ function AssignmentDetails() {
               </VStack>
             </VStack>
           </Box>
-          <Box borderWidth="1px" borderRadius="md" width={"xl"}>
+          <Box
+            display={
+              userRole === "Operator" && assignment.assignedExpert !== undefined
+                ? "block"
+                : "none"
+            }
+            borderWidth="1px"
+            borderRadius="md"
+            width={"xl"}
+          >
             <Box p={4} bgColor="gray.200">
               <HStack>
                 <Heading fontSize={"xl"}>Operator Chat with Expert</Heading>
@@ -1271,42 +1296,63 @@ function AssignmentDetails() {
             >
               <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
                 {operatorExpertChat.map((messageItem, index) => (
-                  <Box
-                    display={
-                      messageItem.type === "TEXT"
-                        ? "flex"
-                        : messageItem.type === "MEDIA"
-                        ? "flex"
-                        : "none"
-                    }
-                    alignSelf={
-                      messageItem.user === id ? "flex-end" : "flex-start"
-                    }
-                    flexWrap={true}
-                    padding={2}
-                    borderRadius={"md"}
-                    maxWidth="70%"
-                    bgColor={messageItem.user === id ? "blue.100" : "green.100"}
-                    key={index}
-                  >
-                    <VStack maxWidth="100%" overflowWrap={"break-word"}>
+                  <>
+                    {messageItem.user === id && (
                       <Text
                         display={messageItem.type === "TEXT" ? "flex" : "none"}
+                        alignSelf={
+                          messageItem.user === id ? "flex-end" : "flex-start"
+                        }
                         maxWidth={"100%"}
+                        color={"gray.500"}
+                        fontSize={"sm"}
                       >
-                        {messageItem.msg}
+                        {id}
                       </Text>
-                      <Link
-                        color={"blue"}
-                        fontWeight={"bold"}
-                        display={messageItem.type === "MEDIA" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                        href={messageItem.msg}
-                      >
-                        {messageItem.msg && messageItem.msg.substring(62)}
-                      </Link>
-                    </VStack>
-                  </Box>
+                    )}
+                    <Box
+                      display={
+                        messageItem.type === "TEXT"
+                          ? "flex"
+                          : messageItem.type === "MEDIA"
+                          ? "flex"
+                          : "none"
+                      }
+                      alignSelf={
+                        messageItem.user === id ? "flex-end" : "flex-start"
+                      }
+                      flexWrap={true}
+                      padding={2}
+                      borderRadius={"md"}
+                      maxWidth="70%"
+                      bgColor={
+                        messageItem.user === id ? "blue.100" : "green.100"
+                      }
+                      key={index}
+                    >
+                      <VStack maxWidth="100%" overflowWrap={"break-word"}>
+                        <Text
+                          display={
+                            messageItem.type === "TEXT" ? "flex" : "none"
+                          }
+                          maxWidth={"100%"}
+                        >
+                          {messageItem.msg}
+                        </Text>
+                        <Link
+                          color={"blue"}
+                          fontWeight={"bold"}
+                          display={
+                            messageItem.type === "MEDIA" ? "flex" : "none"
+                          }
+                          maxWidth={"100%"}
+                          href={messageItem.msg}
+                        >
+                          {messageItem.msg && messageItem.msg.substring(62)}
+                        </Link>
+                      </VStack>
+                    </Box>
+                  </>
                 ))}
               </VStack>
               <InputGroup>
@@ -1387,7 +1433,7 @@ function AssignmentDetails() {
                   <Button
                     id="sendButton"
                     onClick={async () => {
-                      let userToken = localStorage.getItem("expertToken");
+                      let userToken = localStorage.getItem("userToken");
                       let Regex =
                         /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
                       let textInput = document.getElementById(
@@ -1402,25 +1448,6 @@ function AssignmentDetails() {
                             "Sharing Phone Numbers through Chat is not allowed"
                           );
                         } else {
-                          const message = await updateDoc(
-                            doc(
-                              db,
-                              "chat",
-                              assignment.assignedExpert +
-                                "_" +
-                                id +
-                                "_" +
-                                assignment.id
-                            ),
-                            {
-                              conversation: arrayUnion({
-                                msg: textInput.value,
-                                time: Date.now(),
-                                type: "TEXT",
-                                user: id,
-                              }),
-                            }
-                          );
                           let config = {
                             headers: {
                               Authorization: `Bearer ${userToken}`,
@@ -1428,16 +1455,35 @@ function AssignmentDetails() {
                           };
                           try {
                             const response = await axios.post(
-                              apiUrl + "/messages",
+                              apiUrl + "/assignment/messages",
                               {
-                                id: assignment.id,
-                                expertEmail: assignment.assignedExpert,
+                                _id: assignment.id,
+                                message: textInput.value,
                               },
                               config
                             );
                             let resdata = response.data;
                             if (resdata.success) {
-                              // window.alert("Message sent to Expert");
+                              const message = await updateDoc(
+                                doc(
+                                  db,
+                                  "chat",
+                                  assignment.assignedExpert +
+                                    "_" +
+                                    "operator_expert_chat" +
+                                    "_" +
+                                    assignment.id
+                                ),
+                                {
+                                  conversation: arrayUnion({
+                                    msg: textInput.value,
+                                    time: Date.now(),
+                                    type: "TEXT",
+                                    user: id,
+                                  }),
+                                }
+                              );
+                              window.alert("Message sent to Expert");
                             }
                           } catch (err) {
                             console.log(err);
@@ -1538,7 +1584,7 @@ function AssignmentDetails() {
                               encodeURIComponent(
                                 inputFileStickyNotes.current.files[0].name
                               );
-                            let userToken = localStorage.getItem("expertToken");
+                            let userToken = localStorage.getItem("userToken");
                             let userEmail = localStorage.getItem("userEmail");
                             let userName = localStorage.getItem("userName");
 
@@ -1554,7 +1600,7 @@ function AssignmentDetails() {
                                 apiUrl +
                                   "/assignment/comments/operatorToExpert",
                                 {
-                                  assignmentId: params.assignmentID,
+                                  assignmentId: navigate.query.assignmentID,
                                   expertId: assignment.assignedExpert,
                                   notesFromOperator: {
                                     _id: userEmail,
@@ -1689,8 +1735,7 @@ function AssignmentDetails() {
                                 encodeURIComponent(
                                   inputFileQCNotes.current.files[0].name
                                 );
-                              let userToken =
-                                localStorage.getItem("expertToken");
+                              let userToken = localStorage.getItem("userToken");
                               let userEmail = localStorage.getItem("userEmail");
                               let userName = localStorage.getItem("userName");
 
@@ -1705,7 +1750,7 @@ function AssignmentDetails() {
                                 const response = await axios.post(
                                   apiUrl + "/assignment/comments/QCToExpert",
                                   {
-                                    assignmentId: params.assignmentID,
+                                    assignmentId: navigate.query.assignmentID,
                                     expertId: assignment.assignedExpert,
                                     commentsFromQC: {
                                       _id: userEmail,
@@ -1960,7 +2005,7 @@ function AssignmentDetails() {
                   }
                   color={"red"}
                   onClick={async () => {
-                    let userToken = localStorage.getItem("expertToken");
+                    let userToken = localStorage.getItem("userToken");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };

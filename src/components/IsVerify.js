@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 // import { useRouter } from "next/router";
-import { apiUrl } from "../services/contants";
+import { apiUrl, localUrl } from "../services/contants";
 import { useParams } from "react-router-dom";
 // import Head from "next/head";
 
@@ -19,7 +19,10 @@ export default function IsVerify() {
   console.log({ params: params.Id });
 
   const Isverifyfun = async () => {
-    const data = await axios.put(apiUrl + "/user/updatebyadmin", {
+    const data = await axios.put(
+      // apiUrl + "/user/updatebyadmin", 
+      localUrl + "/user/updatebyadmin",
+      {
       token: params.Id,
       isAuthentify: true,
     });
