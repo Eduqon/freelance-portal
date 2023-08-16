@@ -1386,7 +1386,7 @@ function RawSubmissionOrders({
                     {assignment.subject}
                   </Td>
                   <Td textAlign={"center"}>
-                    {localStorage.getItem("userRole") === "Super Admin" ||
+                    {/* {localStorage.getItem("userRole") === "Super Admin" ||
                     localStorage.getItem("userRole") === "Admin"
                       ? "+" +
                         String(assignment.countryCode) +
@@ -1397,7 +1397,15 @@ function RawSubmissionOrders({
                         " " +
                         String(assignment.contact_no).substring(0, 2) +
                         "********" +
-                        String(assignment.contact_no).substring(8, 10)}
+                        String(assignment.contact_no).substring(8, 10)} */}
+                        {
+                          "+" +
+                          String(assignment.countryCode) +
+                          " " +
+                          String(assignment.contact_no).substring(0, 2) +
+                          "********" +
+                          String(assignment.contact_no).substring(8, 10)
+                        }
                   </Td>
                   <Td color={"red.600"} fontWeight={"semibold"}>
                     {assignment.deadline}
@@ -1419,14 +1427,21 @@ function RawSubmissionOrders({
                   </Td>
                   <Td>
                     <Box display="flex" alignItems="center">
-                      {localStorage.getItem("userRole") === "Super Admin" ||
+                      {/* {localStorage.getItem("userRole") === "Super Admin" ||
                       localStorage.getItem("userRole") === "Admin"
                         ? assignment.assignedExpert
                         : assignment.assignedExpert.substring(0, 2) +
                           "****" +
                           "@" +
                           "****" +
-                          ".com"}
+                          ".com"} */}
+                          {
+                            assignment.assignedExpert.substring(0, 2) +
+                            "****" +
+                            "@" +
+                            "****" +
+                            ".com"
+                          }
                       <Button
                         background={"none"}
                         _focus={{ outline: "none" }}
@@ -1443,14 +1458,21 @@ function RawSubmissionOrders({
                   {assignment.assignedQC ? (
                     <Td>
                       <Box display="flex" alignItems="center">
-                        {localStorage.getItem("userRole") === "Super Admin" ||
+                        {/* {localStorage.getItem("userRole") === "Super Admin" ||
                         localStorage.getItem("userRole") === "Admin"
                           ? assignment.assignedQC
                           : assignment.assignedQC?.substring(0, 2) +
                             "****" +
                             "@" +
                             "****" +
-                            ".com"}
+                            ".com"} */}
+                            {
+                              assignment.assignedQC?.substring(0, 2) +
+                              "****" +
+                              "@" +
+                              "****" +
+                              ".com"
+                            }
                         <Button
                           background={"none"}
                           _focus={{ outline: "none" }}
@@ -1577,7 +1599,7 @@ function RawSubmissionOrders({
                         <Tr>
                           <Th>Assigned Expert</Th>
                           <Td display={"flex"} alignItems="center">
-                            {localStorage.getItem("userRole") ===
+                            {/* {localStorage.getItem("userRole") ===
                               "Super Admin" ||
                             localStorage.getItem("userRole") === "Admin"
                               ? assignment.assignedExpert
@@ -1585,7 +1607,14 @@ function RawSubmissionOrders({
                                 "****" +
                                 "@" +
                                 "****" +
-                                ".com"}
+                                ".com"} */}
+                                {
+                                   assignment.assignedExpert.substring(0, 2) +
+                                   "****" +
+                                   "@" +
+                                   "****" +
+                                   ".com"
+                                }
                             <Button
                               background={"none"}
                               _focus={{ outline: "none" }}
@@ -1602,7 +1631,7 @@ function RawSubmissionOrders({
                         <Tr>
                           <Th>Assigned QC</Th>
                           <Td>
-                            {localStorage.getItem("userRole") ===
+                            {/* {localStorage.getItem("userRole") ===
                               "Super Admin" ||
                             localStorage.getItem("userRole") === "Admin"
                               ? assignment.assignedQC
@@ -1610,7 +1639,14 @@ function RawSubmissionOrders({
                                 "****" +
                                 "@" +
                                 "****" +
-                                ".com"}
+                                ".com"} */}
+                                {
+                                  assignment.assignedQC?.substring(0, 2) +
+                                  "****" +
+                                  "@" +
+                                  "****" +
+                                  ".com"
+                                }
                           </Td>
                         </Tr>
                         <Tr>

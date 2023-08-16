@@ -83,6 +83,8 @@ export const FormQcLogin = () => {
         );
         if (response.data.success === true) {
             console.log(response,"successfully logged in the user");
+            if ( response.data.role === 'QC' || response.data.user.role === 'QC') {
+            
           await setContactNo(
             response.data.contact_no || response.data.user.contact_no
           );
@@ -101,10 +103,15 @@ export const FormQcLogin = () => {
             "userCommission",
             response.data?.userCommission || response.data.user?.userCommission
           );
+          navigate('/qcorder')
+        }
           //localStorage.setItem('userChatToken', JSON.stringify(response.data.tokenObj));
         //   navigate.replace("/admin/portal");
         // navigate("/admin/portal");
-        navigate('/qcorder')
+        else{
+alert('you are not qc Go to your portal')
+        }
+     
         } else if (response.status == 203) {
           localStorage.setItem("userToken", response.data.token);
           setName(id);

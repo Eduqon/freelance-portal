@@ -58,7 +58,7 @@ import {
     const inputFileOperatorExpert = useRef(null);
     const { onOpen, onClose } = useDisclosure();
     const [token, setToken] = useState("");
-    const [messageData, setMessageData] = useState([]);
+    // const [messageData, setMessageData] = useState([]);
     const [loader, setLoader] = useState(true);
     const [userID, setUserID] = useState("");
   
@@ -679,17 +679,24 @@ import {
                     </Box>
                   </Td>
                   <Td>
-                    {localStorage.getItem("userRole") === "Super Admin" ||
+                    {/* {localStorage.getItem("userRole") === "Super Admin" ||
                     localStorage.getItem("userRole") === "Admin"
                       ? assignment.client_id
                       : assignment.client_id.substring(0, 2) +
                         "****" +
                         "@" +
                         "****" +
-                        ".com"}
+                        ".com"} */}
+                        {
+                          assignment.client_id.substring(0, 2) +
+                          "****" +
+                          "@" +
+                          "****" +
+                          ".com"
+                        }
                   </Td>
                   <Td textAlign={"center"}>
-                    {localStorage.getItem("userRole") === "Super Admin" ||
+                    {/* {localStorage.getItem("userRole") === "Super Admin" ||
                     localStorage.getItem("userRole") === "Admin"
                       ? "+" +
                         String(assignment.countryCode) +
@@ -700,7 +707,15 @@ import {
                         " " +
                         String(assignment.contact_no).substring(0, 2) +
                         "********" +
-                        String(assignment.contact_no).substring(8, 10)}
+                        String(assignment.contact_no).substring(8, 10)} */}
+                        {
+                          "+" +
+                          String(assignment.countryCode) +
+                          " " +
+                          String(assignment.contact_no).substring(0, 2) +
+                          "********" +
+                          String(assignment.contact_no).substring(8, 10)
+                        }
                   </Td>
                   <Td color={"green.600"} fontWeight={"semibold"}>
                     {assignment.subject}
@@ -917,7 +932,7 @@ import {
                           <Tr>
                             <Th>Student Email</Th>
                             <Td>
-                              {localStorage.getItem("userRole") ===
+                              {/* {localStorage.getItem("userRole") ===
                                 "Super Admin" ||
                               localStorage.getItem("userRole") === "Admin"
                                 ? assignment.client_id
@@ -925,7 +940,14 @@ import {
                                   "****" +
                                   "@" +
                                   "****" +
-                                  ".com"}
+                                  ".com"} */}
+                                  {
+                                    assignment.client_id.substring(0, 2) +
+                                    "****" +
+                                    "@" +
+                                    "****" +
+                                    ".com"
+                                  }
                             </Td>
                           </Tr>
                           <Tr>

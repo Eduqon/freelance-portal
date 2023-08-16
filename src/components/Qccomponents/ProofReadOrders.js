@@ -748,17 +748,24 @@ import {
                     </Box>
                   </Td>
                   <Td>
-                    {localStorage.getItem("userRole") === "Super Admin" ||
+                    {/* {localStorage.getItem("userRole") === "Super Admin" ||
                     localStorage.getItem("userRole") === "Admin"
                       ? assignment.client_id
                       : assignment.client_id.substring(0, 2) +
                         "****" +
                         "@" +
                         "****" +
-                        ".com"}
+                        ".com"} */}
+                        {
+                          assignment.client_id.substring(0, 2) +
+                          "****" +
+                          "@" +
+                          "****" +
+                          ".com"
+                        }
                   </Td>
                   <Td textAlign={"center"}>
-                    {localStorage.getItem("userRole") === "Super Admin" ||
+                    {/* {localStorage.getItem("userRole") === "Super Admin" ||
                     localStorage.getItem("userRole") === "Admin"
                       ? "+" +
                         String(assignment.countryCode) +
@@ -769,7 +776,15 @@ import {
                         " " +
                         String(assignment.contact_no).substring(0, 2) +
                         "********" +
-                        String(assignment.contact_no).substring(8, 10)}
+                        String(assignment.contact_no).substring(8, 10)} */}
+                        {
+                           "+" +
+                           String(assignment.countryCode) +
+                           " " +
+                           String(assignment.contact_no).substring(0, 2) +
+                           "********" +
+                           String(assignment.contact_no).substring(8, 10)
+                        }
                   </Td>
                   <Td color={"green.600"} fontWeight={"semibold"}>
                     {assignment.subject}
@@ -936,7 +951,7 @@ import {
                   </Td>
                   <Td fontWeight={"semibold"} padding={0}>
                     <Box display={"flex"} alignItems="center">
-                      {localStorage.getItem("userRole") === "Super Admin" ||
+                      {/* {localStorage.getItem("userRole") === "Super Admin" ||
                       localStorage.getItem("userRole") === "Admin"
                         ? assignment.assignedQC
                         : assignment.assignedQC &&
@@ -944,7 +959,15 @@ import {
                             "****" +
                             "@" +
                             "****" +
-                            ".com"}
+                            ".com"} */}
+                            {
+                              assignment.assignedQC &&
+                              assignment.assignedQC.substring(0, 2) +
+                                "****" +
+                                "@" +
+                                "****" +
+                                ".com"
+                            }
                       <Button
                         background={"none"}
                         _focus={{ outline: "none" }}
@@ -999,7 +1022,7 @@ import {
                           <Tr>
                             <Th>Student Email</Th>
                             <Td>
-                              {localStorage.getItem("userRole") ===
+                              {/* {localStorage.getItem("userRole") ===
                                 "Super Admin" ||
                               localStorage.getItem("userRole") === "Admin"
                                 ? assignment.client_id
@@ -1007,7 +1030,14 @@ import {
                                   "****" +
                                   "@" +
                                   "****" +
-                                  ".com"}
+                                  ".com"} */}
+                                  {
+                                     assignment.client_id.substring(0, 2) +
+                                     "****" +
+                                     "@" +
+                                     "****" +
+                                     ".com"
+                                  }
                             </Td>
                           </Tr>
                           <Tr>
@@ -1039,7 +1069,7 @@ import {
                           <Tr>
                             <Th>Assigned QC</Th>
                             <Td>
-                              {localStorage.getItem("userRole") ===
+                              {/* {localStorage.getItem("userRole") ===
                                 "Super Admin" ||
                               localStorage.getItem("userRole") === "Admin"
                                 ? assignment.assignedQC
@@ -1048,7 +1078,15 @@ import {
                                     "****" +
                                     "@" +
                                     "****" +
-                                    ".com"}
+                                    ".com"} */}
+                                    {
+                                      assignment.assignedQC &&
+                                      assignment.assignedQC.substring(0, 2) +
+                                        "****" +
+                                        "@" +
+                                        "****" +
+                                        ".com"
+                                    }
                             </Td>
                           </Tr>
                           <Tr>
