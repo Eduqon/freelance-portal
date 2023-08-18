@@ -1,25 +1,13 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Flex,
-  useColorModeValue,
-  Image,
-  Button,
-  useToast,
-} from "@chakra-ui/react";
-// import { useRouter } from "next/router";
+import React, { useEffect } from "react";
+import { Box, Flex, useColorModeValue, Image, Button } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-// import Examplee from "../../components/sidebar/Sidebar";
 import axios from "axios";
 import { apiUrl } from "../../services/contants";
 import { UserStore } from "../../services/stores/user_store";
 
 function QcLoginLayout() {
   // my adding
-  const toast = useToast();
-  const [userRole, setUserRole] = useState("");
-  const setName = UserStore((state) => state.setName);
   const setContactNo = UserStore((state) => state.setContactNo);
   const setRole = UserStore((state) => state.setRole);
   const setLoader = UserStore((state) => state.setLoader);
@@ -28,7 +16,6 @@ function QcLoginLayout() {
   let navigate = useNavigate();
 
   async function QC_logout() {
-    console.log("yes we are enter dasta in sam,e ");
     const userData = await axios.put(`${apiUrl}/user/updatebyadmin`, {
       _id: userEmail,
       browserId: assignmentSantaBrowserToken,
@@ -38,13 +25,11 @@ function QcLoginLayout() {
     localStorage.removeItem("userEmail");
     localStorage.removeItem("userName");
 
-    // setLoader(false);
     navigate("/qclogin");
-    // navigate("/admin/login");
   }
 
-//   const socket = io("https://assignment-santa-api.azurewebsites.net/", {
-    const socket = io("http://localhost:8080/", {
+  const socket = io("https://assignment-santa-api.azurewebsites.net/", {
+    // const socket = io("http://localhost:8080/", {
     transports: ["websocket", "polling"],
     withCredentials: true,
   });
@@ -77,12 +62,16 @@ function QcLoginLayout() {
           userEmail === user.email &&
           newAssignmentSantaBrowserToken === user.browserId
         ) {
-          localStorage.setItem("userRole", user.role);
           localStorage.setItem("userName", user.name);
           localStorage.setItem("userCommission", user.userCommission);
           await setContactNo(user.contact_no);
           await setRole(user.role);
-          navigate("/admin/portal");
+          if (user.role === "QC") {
+            localStorage.setItem("userRole", user.role);
+            navigate("/qcorder");
+          } else {
+            window.alert("Wrong username and password");
+          }
         }
         // socket.on("disconnect");
       });
@@ -103,13 +92,6 @@ function QcLoginLayout() {
           borderColor={useColorModeValue("gray.200", "gray.900")}
           align={"center"}
         >
-          {/* my adding side bar */}
-          {/* {userRole !== null ? (
-            <>
-              <Examplee />
-            </>
-          ) : null} */}
-          {/* end  */}
           <Flex flex={{ base: 1 }} justify={{ base: "center", md: "start" }}>
             <Image src="/assets/Logo.png" w={20} />
           </Flex>

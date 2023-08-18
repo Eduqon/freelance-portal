@@ -56,7 +56,7 @@ function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
         confirmedOperatorExpertChat &&
         openModalId &&
         confirmedOperatorExpertChat[openModalId][
-        confirmedOperatorExpertChat[openModalId].length - 1
+          confirmedOperatorExpertChat[openModalId].length - 1
         ];
       return (lastMessage && lastMessage.expertMsgCount) || 0;
     }
@@ -298,8 +298,8 @@ function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
                               msg.type === "TEXT"
                                 ? "flex"
                                 : msg.type === "MEDIA"
-                                  ? "flex"
-                                  : "none"
+                                ? "flex"
+                                : "none"
                             }
                             alignSelf={
                               msg.user === id ? "flex-end" : "flex-start"
@@ -372,10 +372,10 @@ function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
                                   db,
                                   "chat",
                                   userEmail +
-                                  "_" +
-                                  "operator_expert_chat" +
-                                  "_" +
-                                  openModalId
+                                    "_" +
+                                    "operator_expert_chat" +
+                                    "_" +
+                                    openModalId
                                 ),
                                 {
                                   conversation: arrayUnion({
@@ -437,10 +437,10 @@ function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
                                 db,
                                 "chat",
                                 userEmail +
-                                "_" +
-                                "operator_expert_chat" +
-                                "_" +
-                                openModalId
+                                  "_" +
+                                  "operator_expert_chat" +
+                                  "_" +
+                                  openModalId
                               ),
                               {
                                 conversation: arrayUnion({
@@ -580,7 +580,7 @@ function ConfirmedOrderMessage({ setMessageCount, setSpinnerLoading }) {
                           &nbsp;
                           {data.chat.length !== 0 &&
                             data.chat[data.chat.length - 1].operatorMsgCount !==
-                            0 && (
+                              0 && (
                               <div
                                 style={{
                                   width: "25px",

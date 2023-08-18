@@ -35,7 +35,6 @@ import {
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import { apiUrl } from "../../services/contants";
-// import { useRouter } from "next/router";
 import { useNavigate } from "react-router-dom";
 
 function InternalReworkOrders({ incrementCounter, decrementCounter }) {
@@ -343,7 +342,7 @@ function InternalReworkOrders({ incrementCounter, decrementCounter }) {
     try {
       let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/admin/login");
+        navigate("/qclogin");
       }
 
       let config = {
@@ -455,7 +454,7 @@ function InternalReworkOrders({ incrementCounter, decrementCounter }) {
     try {
       let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/admin/login");
+        navigate("/qclogin");
       }
 
       let config = {

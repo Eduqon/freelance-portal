@@ -19,20 +19,19 @@ import { UserStore } from "../../services/stores/user_store";
 import { apiUrl } from "../../services/contants";
 import { localUrl } from "../../services/contants";
 export const FormQcLogin = () => {
-//   const setId = UserStore((state) => state.setId);
-//   const id = UserStore((state) => state.id);
+  //   const setId = UserStore((state) => state.setId);
+  //   const id = UserStore((state) => state.id);
   const setName = UserStore((state) => state.setName);
   const setContactNo = UserStore((state) => state.setContactNo);
   const setRole = UserStore((state) => state.setRole);
   const setId = UserStore((state) => state.setId);
   const setToken = UserStore((state) => state.setToken);
 
-  const loader = UserStore((state) => state.loader);
   const setLoader = UserStore((state) => state.setLoader);
   const id = UserStore((state) => state.id);
   const toast = useToast();
   let navigate = useNavigate();
-  
+
   async function _submit() {
     let password = document.getElementById("password");
 
@@ -72,8 +71,7 @@ export const FormQcLogin = () => {
           headers: { Authorization: `Bearer ${userToken}` },
         };
         const response = await axios.post(
-        //   apiUrl + "/user/verify",
-        localUrl + "/user/verify",
+          apiUrl + "/user/verify",
           {
             _id: id,
             password: password.value,
@@ -82,36 +80,30 @@ export const FormQcLogin = () => {
           config
         );
         if (response.data.success === true) {
-            console.log(response,"successfully logged in the user");
-            if ( response.data.role === 'QC' || response.data.user.role === 'QC') {
-            
-          await setContactNo(
-            response.data.contact_no || response.data.user.contact_no
-          );
-          await setRole(response.data.role || response.data.user.role);
-          await setName(response.data.name || response.data.user.name);
-          localStorage.setItem("userEmail", id);
-          localStorage.setItem(
-            "userRole",
-            response.data.role || response.data.user.role
-          );
-          localStorage.setItem(
-            "userName",
-            response.data.name || response.data.user.name
-          );
-          localStorage.setItem(
-            "userCommission",
-            response.data?.userCommission || response.data.user?.userCommission
-          );
-          navigate('/qcorder')
-        }
-          //localStorage.setItem('userChatToken', JSON.stringify(response.data.tokenObj));
-        //   navigate.replace("/admin/portal");
-        // navigate("/admin/portal");
-        else{
-alert('you are not qc Go to your portal')
-        }
-     
+          if (response.data.role === "QC" || response.data.user.role === "QC") {
+            await setContactNo(
+              response.data.contact_no || response.data.user.contact_no
+            );
+            await setRole(response.data.role || response.data.user.role);
+            await setName(response.data.name || response.data.user.name);
+            localStorage.setItem("userEmail", id);
+            localStorage.setItem(
+              "userRole",
+              response.data.role || response.data.user.role
+            );
+            localStorage.setItem(
+              "userName",
+              response.data.name || response.data.user.name
+            );
+            localStorage.setItem(
+              "userCommission",
+              response.data?.userCommission ||
+                response.data.user?.userCommission
+            );
+            navigate("/qcorder");
+          } else {
+            window.alert("Wrong username and password");
+          }
         } else if (response.status == 203) {
           localStorage.setItem("userToken", response.data.token);
           setName(id);
@@ -123,8 +115,7 @@ alert('you are not qc Go to your portal')
               headers: { Authorization: `Bearer ${userToken}` },
             };
             const response = await axios.post(
-            //   apiUrl + "/user/verify",
-            localUrl + "/user/verify",
+              apiUrl + "/user/verify",
               {
                 _id: id,
                 password: password.value,
@@ -134,16 +125,21 @@ alert('you are not qc Go to your portal')
             );
 
             if (response.data.success === true) {
-                console.log(response,"successfully logged in the user else");
+              console.log(response, "successfully logged in the user else");
               await setContactNo(response.data.user.contact_no);
               await setRole(response.data.user.role);
               await setName(response.data.user.name);
               localStorage.setItem("userEmail", id);
-              localStorage.setItem("userRole", response.data.user.role);
               localStorage.setItem("userName", response.data.user.name);
-            //   navigate("/admin/portal")
-            navigate('/qcorder')
-            //   navigate.replace("/admin/portal");
+              if (
+                response.data.role === "QC" ||
+                response.data.user.role === "QC"
+              ) {
+                localStorage.setItem("userRole", response.data.user.role);
+                navigate("/qcorder");
+              } else {
+                window.alert("Wrong username and password");
+              }
             }
           } catch (error) {
             toast({
@@ -170,91 +166,6 @@ alert('you are not qc Go to your portal')
       }
     }
   }
-
-
-//   async function _submit() {
-    // let password = document.getElementById("password");
-
-    // let emailVal = false;
-    // let passwordVal = false;
-
-    // if (validator.isEmail(id)) {
-    //   emailVal = true;
-    // } else {
-    //   window.alert("Enter Valid Email");
-    // }
-
-    // if (
-    //   password.value !== null &&
-    //   password.value !== undefined &&
-    //   password.value == ""
-    // ) {
-    //   window.alert("Enter Password");
-    // } else {
-    //   passwordVal = true;
-    // }
-
-    // if (emailVal === true && passwordVal === true) {
-    //   try {
-
-    //     let qcToken = localStorage.getItem("qcToken");
-    //     let config = {
-    //       headers: { Authorization: `Bearer ${qcToken}` },
-    //     };
-    //     const response = await axios.post(
-    //     //   apiUrl + "/expert/verifyWithPassword",
-    //         // localUrl + "/user/verify",
-    //         localUrl + "/loginuser",
-    //       {
-    //         _id: id,
-    //         password: password.value,
-    //       },
-    //       config
-    //     );
-    //     console.log(response,"response of qc1 bhar");
-    //     if (response.data.success === true) {
-    //         console.log(response,"response of qc1");
-    //     //   localStorage.setItem("userEmail", id);
-    //     //   localStorage.setItem("expertEmail", id);
-    //     //   navigate("/expert/portal");
-    //     } else if (response.status == 203) {
-    //         console.log(response,"response of qc ye 203");
-    //       localStorage.setItem("qcToken", response.data.token);
-    //       qcToken = response.data.token;
-
-    //       try {
-    //         let config = {
-    //           headers: { Authorization: `Bearer ${qcToken}` },
-    //         };
-    //         const response = await axios.post(
-    //         //   apiUrl + "/expert/verifyWithPassword",
-    //         //  localUrl + "/user/verify",
-    //         localUrl + "/loginuser",
-             
-    //           {
-    //             _id: id,
-    //             password: password.value,
-    //           },
-    //           config
-    //         );
-    //         console.log(response,"response of qc dobara check");
-    //         if (response.data.success === true) {
-    //             console.log(response,"response of qc");
-    //         //   localStorage.setItem("userEmail", id);
-    //         //   localStorage.setItem("expertEmail", id);
-    //         //   navigate("/expert/portal");
-    //         }
-    //       } catch (error) {
-    //         window.alert("Please enter the correct username and password");
-    //         console.log(JSON.stringify(error.response.data));
-    //       }
-    //     }
-    //   } catch (err) {
-    //     window.alert("Please enter the correct username and password with last catch");
-    //     console.log(JSON.stringify(err));
-    //   }
-    // }
-//   }
 
   return (
     <Flex minH={"80vh"} align={"center"} justify={"center"}>
@@ -317,30 +228,3 @@ alert('you are not qc Go to your portal')
     </Flex>
   );
 };
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
