@@ -32,7 +32,6 @@ import { apiUrl, frontEndUrl } from "../../../services/contants";
 import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import ProofReadOrders from "../ProofReadOrders";
 import CP2DoneOrders from "../CP2DoneOrders";
-import ClientReworkOrders from "../ClientReworkOrders";
 import InternalReworkOrders from "../InternalReworkOrders";
 import RawSubmissionOrders from "../RawSubmissionOrders";
 
