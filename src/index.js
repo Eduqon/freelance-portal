@@ -9,6 +9,9 @@ import Portal from "./pages/Portal";
 import AdminLogin from "./pages/Login";
 import AssignmentDetails from "./pages/AssignmentDetails";
 import IsVerify from "./components/IsVerify";
+import Qclogin from "./components/Qccomponents/Qclogin";
+import QcOrder from "./components/Qccomponents/Qcorder/QcOrder";
+import QcPortal from "./components/Qccomponents/QcPortal";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -22,11 +25,22 @@ ReactDOM.render(
             path="/assignment_details/:assignmentID"
             element={<AssignmentDetails />}
           />
+             <Route
+            path="/qcorder"
+            element={<QcPortal />}
+          />
+            <Route
+            path="/qclogin"
+            element={<Qclogin />}
+          />
           <Route path="/:assignmentID/:expertID" element={<SubmitQuote />} />
           <Route
             path="/:assignmentID/:expertID/expert_Operator_Chat"
             element={<ExpertOpertorChat />}
           />
+              <Route
+            path="/admin/assignment_details/:assignmentID"
+            element={<AssignmentDetails/>}/>
           <Route
             path="*"
             element={
@@ -35,6 +49,7 @@ ReactDOM.render(
               </Center>
             }
           />
+       
         </Routes>
       </BrowserRouter>
     </ChakraProvider>

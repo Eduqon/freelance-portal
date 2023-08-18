@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-// import { useRouter } from "next/router";
 import { apiUrl } from "../services/contants";
 import { useParams } from "react-router-dom";
-// import Head from "next/head";
 
 export default function IsVerify() {
   const [isVerified, setIsverified] = useState(false);
@@ -16,14 +14,12 @@ export default function IsVerify() {
       Isverifyfun();
     }
   }, [params]);
-  console.log({ params: params.Id });
 
   const Isverifyfun = async () => {
     const data = await axios.put(apiUrl + "/user/updatebyadmin", {
       token: params.Id,
       isAuthentify: true,
     });
-    console.log({ data });
     if (data.data.success === true) {
       setIsverified(true);
       setUserEmail(data.data.response.email);

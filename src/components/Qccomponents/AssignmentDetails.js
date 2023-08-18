@@ -1,9 +1,9 @@
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
-import { apiUrl } from "../services/contants";
-import { useParams, useNavigate } from "react-router-dom";
+import { apiUrl } from "../../../services/contants";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { db } from "../services/firebase";
+import { db } from "../../../services/firebase";
 import {
   arrayUnion,
   doc,
@@ -49,13 +49,8 @@ import {
   Checkbox,
   Spinner,
 } from "@chakra-ui/react";
-import {
-  RepeatIcon,
-  ArrowForwardIcon,
-  AttachmentIcon,
-  AddIcon,
-} from "@chakra-ui/icons";
-import LoginLayout from "./LoginLayout";
+import { RepeatIcon, ArrowForwardIcon, AttachmentIcon } from "@chakra-ui/icons";
+import QcLoginLayout from "./QcLoginLayout";
 
 function AssignmentDetails() {
   const [assignment, setAssignment] = useState();
@@ -77,7 +72,6 @@ function AssignmentDetails() {
   const [id, setId] = useState("");
   const [clientId, setChatClientId] = useState("");
 
-  let params = useParams();
   let navigate = useNavigate();
 
   let stickyNotesList = [];
@@ -107,7 +101,7 @@ function AssignmentDetails() {
     _fetchAssignmentDetails();
     setUserRole(localStorage.getItem("userRole"));
     setTabIndex(Number(localStorage.getItem("tabIndex")));
-  }, [params]);
+  }, [navigate]);
 
   async function _fetchToken() {
     try {
@@ -125,9 +119,9 @@ function AssignmentDetails() {
 
   async function _fetchQuotations() {
     try {
-      let userToken = localStorage.getItem("expertToken");
+      let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/expert/login");
+        navigate("/qclogin");
       }
 
       let config = {
@@ -136,7 +130,7 @@ function AssignmentDetails() {
       const response = await axios.get(
         apiUrl +
           "/assignment/quotes/fetch?assignment_id=" +
-          params.assignmentID,
+          navigate.query.assignmentID,
         config
       );
       let data = await response.data.result.expertQuotations;
@@ -161,7 +155,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentFiles() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -169,7 +163,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/assignmentFiles/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result.assignmentFiles;
@@ -195,7 +189,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchSubmissions() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -203,7 +197,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/submissions/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result.workSubmissions;
@@ -229,7 +223,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchActions() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -237,7 +231,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/activity/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -263,7 +257,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentQcNotes() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -271,7 +265,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/qc-comments/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -291,7 +285,7 @@ function AssignmentDetails() {
   }
 
   async function _addAssignmentQcNote() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
     let userEmail = localStorage.getItem("userEmail");
     let userName = localStorage.getItem("userName");
 
@@ -306,7 +300,7 @@ function AssignmentDetails() {
       const response = await axios.post(
         apiUrl + "/assignment/comments/QCToExpert",
         {
-          assignmentId: params.assignmentID,
+          assignmentId: navigate.query.assignmentID,
           expertId: assignment.assignedExpert,
           commentsFromQC: {
             _id: userEmail,
@@ -326,7 +320,7 @@ function AssignmentDetails() {
   }
 
   async function _fetchAssignmentStickyNotes() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
 
     let config = {
       headers: { Authorization: `Bearer ${userToken}` },
@@ -334,7 +328,7 @@ function AssignmentDetails() {
     const response = await axios.get(
       apiUrl +
         "/assignment/comments/fetch?assignment_id=" +
-        params.assignmentID,
+        navigate.query.assignmentID,
       config
     );
     let data = await response.data.result;
@@ -354,7 +348,7 @@ function AssignmentDetails() {
   }
 
   async function _addAssignmentStickyNote() {
-    let userToken = localStorage.getItem("expertToken");
+    let userToken = localStorage.getItem("userToken");
     let userEmail = localStorage.getItem("userEmail");
     let userName = localStorage.getItem("userName");
 
@@ -369,7 +363,7 @@ function AssignmentDetails() {
       const response = await axios.post(
         apiUrl + "/assignment/comments/operatorToExpert",
         {
-          assignmentId: params.assignmentID,
+          assignmentId: navigate.query.assignmentID,
           expertId: assignment.assignedExpert,
           notesFromOperator: {
             _id: userEmail,
@@ -390,18 +384,16 @@ function AssignmentDetails() {
 
   async function _fetchAssignmentDetails() {
     try {
-      let userToken = localStorage.getItem("expertToken");
+      let userToken = localStorage.getItem("userToken");
       if (userToken == null) {
-        navigate("/expert/login");
+        navigate("/qclogin");
       }
 
       let config = {
         headers: { Authorization: `Bearer ${userToken}` },
       };
-      console.log({ id: params.assignmentID, userToken });
-      //   return;
       const response = await axios.get(
-        apiUrl + "/assignment/fetch?_id=" + params.assignmentID,
+        apiUrl + "/assignment/fetch?_id=" + navigate.query.assignmentID,
         config
       );
       let data = await response.data.assignmentData;
@@ -437,23 +429,8 @@ function AssignmentDetails() {
             new Date(data[0].deadline).toDateString(),
         });
         setChatClientId(data[0].client_id);
-        await _fetchSalesChatView(
-          data[0].client_id,
-          data[0].assignedSales,
-          data[0]._id
-        );
         await _fetchSalesChat(data[0].client_id, data[0]._id);
-        await _fetchOperatorExpertChatView(
-          data[0].assignedExpert,
-          data[0].assignedOperator,
-          data[0]._id
-        );
         await _fetchOperatorExpertChat(data[0].assignedExpert, data[0]._id);
-        await _fetchQcExpertChatView(
-          data[0].assignedExpert,
-          data[0].assignedQC,
-          data[0]._id
-        );
         await _fetchQcExpertChat(data[0].assignedExpert, data[0]._id);
         await _fetchAssignmentStickyNotes();
         await _fetchAssignmentQcNotes();
@@ -490,30 +467,11 @@ function AssignmentDetails() {
     }
   }
 
-  async function _fetchSalesChatView(clientEmail, salesEmail, assignment_id) {
-    if (
-      localStorage.getItem("userRole") === "Admin" ||
-      localStorage.getItem("userRole") === "Super Admin"
-    ) {
-      try {
-        const chatName = clientEmail + "_" + salesEmail + "_" + assignment_id;
-        const chatDoc = await getDoc(doc(db, "chat", chatName));
-        if (!chatDoc.exists()) {
-          await setDoc(doc(db, "chat", chatName), {
-            conversation: [],
-          });
-        }
-        const unsubChat = onSnapshot(doc(db, "chat", chatName), (doc) => {
-          setSalesViewChat(doc.data().conversation);
-        });
-      } catch (error) {}
-    }
-  }
-
   async function _fetchOperatorExpertChat(expertEmail, assignment_id) {
     let userEmail = localStorage.getItem("userEmail");
     try {
-      const chatName = expertEmail + "_" + userEmail + "_" + assignment_id;
+      const chatName =
+        expertEmail + "_" + "operator_expert_chat" + "_" + assignment_id;
       const chatDoc = await getDoc(doc(db, "chat", chatName));
       if (!chatDoc.exists()) {
         await setDoc(doc(db, "chat", chatName), {
@@ -525,33 +483,6 @@ function AssignmentDetails() {
       });
     } catch (error) {
       console.log(error);
-    }
-  }
-
-  async function _fetchOperatorExpertChatView(
-    expertEmail,
-    operatorEmail,
-    assignment_id
-  ) {
-    if (
-      localStorage.getItem("userRole") === "Admin" ||
-      localStorage.getItem("userRole") === "Super Admin"
-    ) {
-      try {
-        const chatName =
-          expertEmail + "_" + operatorEmail + "_" + assignment_id;
-        const chatDoc = await getDoc(doc(db, "chat", chatName));
-        if (!chatDoc.exists()) {
-          await setDoc(doc(db, "chat", chatName), {
-            conversation: [],
-          });
-        }
-        const unsubChat = onSnapshot(doc(db, "chat", chatName), (doc) => {
-          setOperatorExpertViewChat(doc.data().conversation);
-        });
-      } catch (error) {
-        console.log(error);
-      }
     }
   }
 
@@ -570,28 +501,6 @@ function AssignmentDetails() {
       });
     } catch (error) {
       //console.log(error);
-    }
-  }
-
-  async function _fetchQcExpertChatView(expertEmail, qcEmail, assignment_id) {
-    if (
-      localStorage.getItem("userRole") === "Admin" ||
-      localStorage.getItem("userRole") === "Super Admin"
-    ) {
-      try {
-        const chatName = expertEmail + "_" + qcEmail + "_" + assignment_id;
-        const chatDoc = await getDoc(doc(db, "chat", chatName));
-        if (!chatDoc.exists()) {
-          await setDoc(doc(db, "chat", chatName), {
-            conversation: [],
-          });
-        }
-        const unsubChat = onSnapshot(doc(db, "chat", chatName), (doc) => {
-          setQcExpertViewChat(doc.data().conversation);
-        });
-      } catch (error) {
-        console.log(error);
-      }
     }
   }
 
@@ -721,7 +630,7 @@ function AssignmentDetails() {
                   if (checkedListTemp.length === 0) {
                     window.alert("Select Files to Send");
                   } else {
-                    let userToken = localStorage.getItem("expertToken");
+                    let userToken = localStorage.getItem("userToken");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };
@@ -734,7 +643,7 @@ function AssignmentDetails() {
                           const responseDeadline = await axios.post(
                             apiUrl + "/assignment/update",
                             {
-                              _id: params.assignmentID,
+                              _id: navigate.query.assignmentID,
                               status: "CP2 Done",
                               currentState: 8,
                               order_placed_time: {
@@ -748,7 +657,7 @@ function AssignmentDetails() {
                           let response = await axios.post(
                             apiUrl + "/assignment/final-delivery",
                             {
-                              _id: params.assignmentID,
+                              _id: navigate.query.assignmentID,
                               emailToDeliver: customMail.value,
                               fileLinks: checkedListTemp,
                             },
@@ -771,7 +680,7 @@ function AssignmentDetails() {
                         const responseDeadline = await axios.post(
                           apiUrl + "/assignment/update",
                           {
-                            _id: params.assignmentID,
+                            _id: navigate.query.assignmentID,
                             status: "CP2 Done",
                             currentState: 8,
                             order_placed_time: {
@@ -785,7 +694,7 @@ function AssignmentDetails() {
                         let response = await axios.post(
                           apiUrl + "/assignment/final-delivery",
                           {
-                            _id: params.assignmentID,
+                            _id: navigate.query.assignmentID,
                             emailToDeliver: assignment.client_id,
                             fileLinks: checkedListTemp,
                           },
@@ -881,7 +790,7 @@ function AssignmentDetails() {
                   if (fileCategory.value === "") {
                     window.alert("Please Enter File Category");
                   } else {
-                    let userToken = localStorage.getItem("expertToken");
+                    let userToken = localStorage.getItem("userToken");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };
@@ -889,7 +798,7 @@ function AssignmentDetails() {
                       let response = await axios.post(
                         apiUrl + "/assignment/assignmentFiles",
                         {
-                          _id: params.assignmentID,
+                          _id: navigate.query.assignmentID,
                           files: [
                             {
                               category: fileCategory.value,
@@ -924,7 +833,8 @@ function AssignmentDetails() {
   }
   return (
     <>
-      <LoginLayout />
+      {/* <AdminLayout /> */}
+      <QcLoginLayout />
       <VStack alignItems={"start"} margin={5}>
         <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose}>
           <ModalOverlay />
@@ -939,14 +849,13 @@ function AssignmentDetails() {
         <HStack>
           <Button
             onClick={async () => {
-              // navigate("/expert/portal");
-              navigate('/+qcorder')
-
-              localStorage.setItem("backButton", true);
-              localStorage.setItem("tabIndex", tabIndex);
+              console.log("tap....");
+              //   navigate("/qcorder");
+              //   localStorage.setItem("backButton", true);
+              //   localStorage.setItem("tabIndex", tabIndex);
             }}
           >
-            Back to order
+            Back to orders
           </Button>
           <Button
             leftIcon={<RepeatIcon />}
@@ -1108,53 +1017,6 @@ function AssignmentDetails() {
               </VStack>
             </VStack>
           </Box>
-          <Box
-            display={
-              userRole === "Admin" || userRole === "Super Admin"
-                ? "block"
-                : "none"
-            }
-            borderWidth="1px"
-            borderRadius="md"
-            width={"xl"}
-          >
-            <Box bgColor="gray.200" p={4}>
-              <Heading fontSize={"xl"}>Expert Quotations</Heading>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {quotations.length === 0 ? (
-                  <></>
-                ) : (
-                  quotations.map((quotation, index) => (
-                    <Box key={index}>
-                      <VStack alignItems={"start"} marginBottom={"20px"}>
-                        <VStack alignItems={"flex-start"}>
-                          <Text
-                            color={
-                              quotation._id === assignment.assignedExpert
-                                ? "red"
-                                : ""
-                            }
-                            fontWeight={"bold"}
-                          >
-                            Expert: {quotation._id}
-                          </Text>
-                          <Text>Amount: {quotation.cost}</Text>
-                        </VStack>
-                      </VStack>
-                    </Box>
-                  ))
-                )}
-              </VStack>
-            </VStack>
-          </Box>
           <Box borderWidth="1px" borderRadius="md" width={"xl"}>
             <Box
               display={"flex"}
@@ -1217,7 +1079,7 @@ function AssignmentDetails() {
               </VStack>
             </VStack>
           </Box>
-          <Box borderWidth="1px" borderRadius="md" width={"xl"}>
+          <Box display="block" borderWidth="1px" borderRadius="md" width={"xl"}>
             <Box bgColor="gray.200" p={4}>
               <Heading fontSize={"xl"}>Expert Submissions</Heading>
             </Box>
@@ -1254,203 +1116,6 @@ function AssignmentDetails() {
                   ))
                 )}
               </VStack>
-            </VStack>
-          </Box>
-          <Box borderWidth="1px" borderRadius="md" width={"xl"}>
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}>Operator Chat with Expert</Heading>
-              </HStack>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {operatorExpertChat.map((messageItem, index) => (
-                  <Box
-                    display={
-                      messageItem.type === "TEXT"
-                        ? "flex"
-                        : messageItem.type === "MEDIA"
-                        ? "flex"
-                        : "none"
-                    }
-                    alignSelf={
-                      messageItem.user === id ? "flex-end" : "flex-start"
-                    }
-                    flexWrap={true}
-                    padding={2}
-                    borderRadius={"md"}
-                    maxWidth="70%"
-                    bgColor={messageItem.user === id ? "blue.100" : "green.100"}
-                    key={index}
-                  >
-                    <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                      <Text
-                        display={messageItem.type === "TEXT" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                      >
-                        {messageItem.msg}
-                      </Text>
-                      <Link
-                        color={"blue"}
-                        fontWeight={"bold"}
-                        display={messageItem.type === "MEDIA" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                        href={messageItem.msg}
-                      >
-                        {messageItem.msg && messageItem.msg.substring(62)}
-                      </Link>
-                    </VStack>
-                  </Box>
-                ))}
-              </VStack>
-              <InputGroup>
-                <Input type="text" id="addChatOperatorExpert" />
-                <Input
-                  type="file"
-                  id="addFileOperatorExpert"
-                  onChange={async () => {
-                    let fileUrl = "";
-                    if (inputFileOperatorExpert) {
-                      onOpen();
-                      try {
-                        var config = {
-                          method: "put",
-                          url:
-                            "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                            encodeURIComponent(
-                              inputFileOperatorExpert.current.files[0].name
-                            ) +
-                            "?" +
-                            token,
-                          headers: {
-                            "x-ms-blob-type": "BlockBlob",
-                          },
-                          data: inputFileOperatorExpert.current.files[0],
-                        };
-
-                        axios(config)
-                          .then(async function (response) {
-                            fileUrl =
-                              "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                              encodeURIComponent(
-                                inputFileOperatorExpert.current.files[0].name
-                              );
-                            const message = await updateDoc(
-                              doc(
-                                db,
-                                "chat",
-                                assignment.assignedExpert +
-                                  "_" +
-                                  id +
-                                  "_" +
-                                  assignment.id
-                              ),
-                              {
-                                conversation: arrayUnion({
-                                  msg: fileUrl,
-                                  time: Date.now(),
-                                  type: "MEDIA",
-                                  user: id,
-                                }),
-                              }
-                            );
-                          })
-                          .catch(function (error) {
-                            console.log(error);
-                          });
-                      } catch (error) {
-                        console.log(error);
-                      }
-                      onClose();
-                    }
-                  }}
-                  ref={inputFileOperatorExpert}
-                  style={{ display: "none" }}
-                />
-                <InputLeftElement h={"full"}>
-                  <Button
-                    id="attachButton"
-                    onClick={async () => {
-                      inputFileOperatorExpert.current.click();
-                    }}
-                  >
-                    <AttachmentIcon />
-                  </Button>
-                </InputLeftElement>
-                <InputRightElement h={"full"}>
-                  <Button
-                    id="sendButton"
-                    onClick={async () => {
-                      let userToken = localStorage.getItem("expertToken");
-                      let Regex =
-                        /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
-                      let textInput = document.getElementById(
-                        "addChatOperatorExpert"
-                      );
-                      if (
-                        textInput.value !== "" &&
-                        textInput.value !== undefined
-                      ) {
-                        if (Regex.test(textInput.value)) {
-                          window.alert(
-                            "Sharing Phone Numbers through Chat is not allowed"
-                          );
-                        } else {
-                          const message = await updateDoc(
-                            doc(
-                              db,
-                              "chat",
-                              assignment.assignedExpert +
-                                "_" +
-                                id +
-                                "_" +
-                                assignment.id
-                            ),
-                            {
-                              conversation: arrayUnion({
-                                msg: textInput.value,
-                                time: Date.now(),
-                                type: "TEXT",
-                                user: id,
-                              }),
-                            }
-                          );
-                          let config = {
-                            headers: {
-                              Authorization: `Bearer ${userToken}`,
-                            },
-                          };
-                          try {
-                            const response = await axios.post(
-                              apiUrl + "/messages",
-                              {
-                                id: assignment.id,
-                                expertEmail: assignment.assignedExpert,
-                              },
-                              config
-                            );
-                            let resdata = response.data;
-                            if (resdata.success) {
-                              // window.alert("Message sent to Expert");
-                            }
-                          } catch (err) {
-                            console.log(err);
-                          }
-                        }
-                      }
-                      textInput.value = "";
-                    }}
-                  >
-                    <ArrowForwardIcon />
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
             </VStack>
           </Box>
           <Box borderWidth="1px" borderRadius="md" width={"xl"}>
@@ -1499,110 +1164,6 @@ function AssignmentDetails() {
                   ))
                 )}
               </VStack>
-              <InputGroup
-                visibility={
-                  userRole === "Operator" ||
-                  userRole === "Admin" ||
-                  userRole === "Super Admin"
-                    ? "visible"
-                    : "hidden"
-                }
-              >
-                <Input type="text" id="addSticky" />
-                <Input
-                  type="file"
-                  id="addFileStickyNotes"
-                  onChange={async () => {
-                    let fileUrl = "";
-                    if (inputFileStickyNotes) {
-                      try {
-                        var config = {
-                          method: "put",
-                          url:
-                            "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                            encodeURIComponent(
-                              inputFileStickyNotes.current.files[0].name
-                            ) +
-                            "?" +
-                            token,
-                          headers: {
-                            "x-ms-blob-type": "BlockBlob",
-                          },
-                          data: inputFileStickyNotes.current.files[0],
-                        };
-
-                        axios(config)
-                          .then(async function (response) {
-                            fileUrl =
-                              "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                              encodeURIComponent(
-                                inputFileStickyNotes.current.files[0].name
-                              );
-                            let userToken = localStorage.getItem("expertToken");
-                            let userEmail = localStorage.getItem("userEmail");
-                            let userName = localStorage.getItem("userName");
-
-                            let config = {
-                              headers: {
-                                Authorization: `Bearer ${userToken}`,
-                              },
-                            };
-                            if (fileUrl === "") {
-                              window.alert("Attachment cannot be empty");
-                            } else {
-                              const response = await axios.post(
-                                apiUrl +
-                                  "/assignment/comments/operatorToExpert",
-                                {
-                                  assignmentId: params.assignmentID,
-                                  expertId: assignment.assignedExpert,
-                                  notesFromOperator: {
-                                    _id: userEmail,
-                                    name: userName,
-                                    comment: fileUrl,
-                                  },
-                                },
-                                config
-                              );
-                              if (response.data.success) {
-                                await _fetchAssignmentStickyNotes();
-                              } else {
-                                console.log(response);
-                              }
-                            }
-                          })
-                          .catch(function (error) {
-                            console.log(error);
-                          });
-                      } catch (error) {
-                        console.log(error);
-                      }
-                    }
-                  }}
-                  ref={inputFileStickyNotes}
-                  style={{ display: "none" }}
-                />
-                <InputLeftElement h={"full"}>
-                  <Button
-                    id="attachButton"
-                    onClick={async () => {
-                      inputFileStickyNotes.current.click();
-                    }}
-                  >
-                    <AttachmentIcon />
-                  </Button>
-                </InputLeftElement>
-                <InputRightElement h={"full"}>
-                  <Button
-                    variant={"outline"}
-                    onClick={() => {
-                      _addAssignmentStickyNote();
-                    }}
-                  >
-                    <ArrowForwardIcon />
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
             </VStack>
           </Box>
           <HStack display={userRole === "QC" ? "block" : "none"}>
@@ -1689,8 +1250,7 @@ function AssignmentDetails() {
                                 encodeURIComponent(
                                   inputFileQCNotes.current.files[0].name
                                 );
-                              let userToken =
-                                localStorage.getItem("expertToken");
+                              let userToken = localStorage.getItem("userToken");
                               let userEmail = localStorage.getItem("userEmail");
                               let userName = localStorage.getItem("userName");
 
@@ -1705,7 +1265,7 @@ function AssignmentDetails() {
                                 const response = await axios.post(
                                   apiUrl + "/assignment/comments/QCToExpert",
                                   {
-                                    assignmentId: params.assignmentID,
+                                    assignmentId: navigate.query.assignmentID,
                                     expertId: assignment.assignedExpert,
                                     commentsFromQC: {
                                       _id: userEmail,
@@ -1942,433 +1502,6 @@ function AssignmentDetails() {
               </InputGroup>
             </VStack>
           </Box>
-          <Box
-            display={userRole === "Sales" ? "block" : "none"}
-            borderWidth="1px"
-            borderRadius="md"
-            width={"xl"}
-          >
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}>Sales Chat with Client</Heading>
-                <Spacer />
-                <Text
-                  visibility={
-                    userRole === "Sales" && assignment.assignedSales !== id
-                      ? "visible"
-                      : "hidden"
-                  }
-                  color={"red"}
-                  onClick={async () => {
-                    let userToken = localStorage.getItem("expertToken");
-                    let config = {
-                      headers: { Authorization: `Bearer ${userToken}` },
-                    };
-                    const response = await axios.post(
-                      apiUrl + "/assignment/update",
-                      {
-                        _id: assignment.id,
-                        assignedSales: id,
-                      },
-                      config
-                    );
-                    await _fetchAssignmentDetails();
-                    window.alert(
-                      "Override Complete. You are now Assigned to this Assignment"
-                    );
-                  }}
-                >
-                  Override
-                </Text>
-              </HStack>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {salesChat.map((messageItem, index) => (
-                  <Box
-                    display={
-                      messageItem.type === "TEXT"
-                        ? "flex"
-                        : messageItem.type === "MEDIA"
-                        ? "flex"
-                        : "none"
-                    }
-                    alignSelf={
-                      messageItem.user === id ? "flex-end" : "flex-start"
-                    }
-                    flexWrap={true}
-                    padding={2}
-                    borderRadius={"md"}
-                    maxWidth="70%"
-                    bgColor={messageItem.user === id ? "blue.100" : "green.100"}
-                    key={index}
-                  >
-                    <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                      <Text
-                        display={messageItem.type === "TEXT" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                      >
-                        {messageItem.msg}
-                      </Text>
-                      <Link
-                        color={"blue"}
-                        fontWeight={"bold"}
-                        display={messageItem.type === "MEDIA" ? "flex" : "none"}
-                        maxWidth={"100%"}
-                        href={messageItem.msg}
-                      >
-                        {messageItem.msg.substring(62)}
-                      </Link>
-                    </VStack>
-                  </Box>
-                ))}
-              </VStack>
-              <InputGroup>
-                <Input type="text" id="addChatSales" />
-                <Input
-                  type="file"
-                  id="addFileSalesClient"
-                  onChange={async () => {
-                    let fileUrl = "";
-                    if (inputFileSalesClient) {
-                      try {
-                        var config = {
-                          method: "put",
-                          url:
-                            "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                            encodeURIComponent(
-                              inputFileSalesClient.current.files[0].name
-                            ) +
-                            "?" +
-                            token,
-                          headers: {
-                            "x-ms-blob-type": "BlockBlob",
-                          },
-                          data: inputFileSalesClient.current.files[0],
-                        };
-                        axios(config)
-                          .then(async function (response) {
-                            fileUrl =
-                              "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-                              encodeURIComponent(
-                                inputFileSalesClient.current.files[0].name
-                              );
-                            const message = await updateDoc(
-                              doc(
-                                db,
-                                "chat",
-                                clientId + "_" + id + "_" + assignment.id
-                              ),
-                              {
-                                conversation: arrayUnion({
-                                  msg: fileUrl,
-                                  time: Date.now(),
-                                  type: "MEDIA",
-                                  user: id,
-                                }),
-                              }
-                            );
-                          })
-                          .catch(function (error) {
-                            console.log(error);
-                          });
-                      } catch (error) {
-                        console.log(error);
-                      }
-                    }
-                  }}
-                  ref={inputFileSalesClient}
-                  style={{ display: "none" }}
-                />
-                <InputLeftElement h={"full"}>
-                  <Button
-                    id="attachButton"
-                    onClick={async () => {
-                      inputFileSalesClient.current.click();
-                    }}
-                  >
-                    <AttachmentIcon />
-                  </Button>
-                </InputLeftElement>
-                <InputRightElement h={"full"}>
-                  <Button
-                    id="sendButton"
-                    onClick={async () => {
-                      if (assignment.assignedSales !== id) {
-                        window.alert(
-                          "You are not assigned to this Assignment!!! You will have to override first to continue"
-                        );
-                      } else {
-                        let Regex =
-                          /\b[\+]?[(]?[0-9]{2,6}[)]?[-\s\.]?[-\s\/\.0-9]{3,15}\b/m;
-                        let textInput = document.getElementById("addChatSales");
-                        if (
-                          textInput.value !== "" &&
-                          textInput.value !== undefined
-                        ) {
-                          if (Regex.test(textInput.value)) {
-                            window.alert(
-                              "Sharing Phone Numbers through Chat is not allowed"
-                            );
-                          } else {
-                            const message = await updateDoc(
-                              doc(
-                                db,
-                                "chat",
-                                clientId + "_" + id + "_" + assignment.id
-                              ),
-                              {
-                                conversation: arrayUnion({
-                                  msg: textInput.value,
-                                  time: Date.now(),
-                                  type: "TEXT",
-                                  user: id,
-                                }),
-                              }
-                            );
-                          }
-                        }
-                        textInput.value = "";
-                      }
-                    }}
-                  >
-                    <ArrowForwardIcon />
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-            </VStack>
-          </Box>
-          <Box
-            display={
-              userRole === "Admin" || userRole === "Super Admin"
-                ? "block"
-                : "none"
-            }
-            borderWidth="1px"
-            borderRadius="md"
-            width={"xl"}
-          >
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}>
-                  Sales Chat with Client (Admin View)
-                </Heading>
-                <Spacer />
-              </HStack>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {salesViewChat.map((messageItem, index) => (
-                  <>
-                    <Text fontWeight={"bold"} maxWidth={"100%"}>
-                      {messageItem.user}:
-                    </Text>
-                    <Box
-                      display={
-                        messageItem.type === "TEXT"
-                          ? "flex"
-                          : messageItem.type === "MEDIA"
-                          ? "flex"
-                          : "none"
-                      }
-                      flexWrap={true}
-                      padding={2}
-                      borderRadius={"md"}
-                      maxWidth="70%"
-                      bgColor={"green.100"}
-                      key={index}
-                    >
-                      <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                        <VStack>
-                          <Text
-                            display={
-                              messageItem.type === "TEXT" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                          >
-                            {messageItem.msg}
-                          </Text>
-                          <Link
-                            color={"blue"}
-                            fontWeight={"bold"}
-                            display={
-                              messageItem.type === "MEDIA" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                            href={messageItem.msg}
-                          >
-                            {messageItem.msg.substring(62)}
-                          </Link>
-                        </VStack>
-                      </VStack>
-                    </Box>
-                  </>
-                ))}
-              </VStack>
-            </VStack>
-          </Box>
-          <Box
-            display={
-              userRole === "Admin" || userRole === "Super Admin"
-                ? "block"
-                : "none"
-            }
-            borderWidth="1px"
-            borderRadius="md"
-            width={"xl"}
-          >
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}>
-                  Operator Chat with Expert (Admin View)
-                </Heading>
-                <Spacer />
-              </HStack>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {operatorExpertViewChat.map((messageItem, index) => (
-                  <>
-                    <Text fontWeight={"bold"} maxWidth={"100%"}>
-                      {messageItem.user}:
-                    </Text>
-                    <Box
-                      display={
-                        messageItem.type === "TEXT"
-                          ? "flex"
-                          : messageItem.type === "MEDIA"
-                          ? "flex"
-                          : "none"
-                      }
-                      flexWrap={true}
-                      padding={2}
-                      borderRadius={"md"}
-                      maxWidth="70%"
-                      bgColor={"green.100"}
-                      key={index}
-                    >
-                      <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                        <VStack>
-                          <Text
-                            display={
-                              messageItem.type === "TEXT" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                          >
-                            {messageItem.msg}
-                          </Text>
-                          <Link
-                            color={"blue"}
-                            fontWeight={"bold"}
-                            display={
-                              messageItem.type === "MEDIA" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                            href={messageItem.msg}
-                          >
-                            {messageItem.msg.substring(62)}
-                          </Link>
-                        </VStack>
-                      </VStack>
-                    </Box>
-                  </>
-                ))}
-              </VStack>
-            </VStack>
-          </Box>
-          <Box
-            display={
-              userRole === "Admin" || userRole === "Super Admin"
-                ? "block"
-                : "none"
-            }
-            borderWidth="1px"
-            borderRadius="md"
-            width={"xl"}
-          >
-            <Box p={4} bgColor="gray.200">
-              <HStack>
-                <Heading fontSize={"xl"}>
-                  QC Chat with Expert (Admin View)
-                </Heading>
-                <Spacer />
-              </HStack>
-            </Box>
-            <VStack
-              alignItems={"start"}
-              justifyContent={"space-between"}
-              margin={3}
-              minH={"sm"}
-              maxH={"sm"}
-            >
-              <VStack overflowY={"scroll"} alignItems={"start"} width={"100%"}>
-                {qcExpertViewChat.map((messageItem, index) => (
-                  <>
-                    <Text fontWeight={"bold"} maxWidth={"100%"}>
-                      {messageItem.user}:
-                    </Text>
-                    <Box
-                      display={
-                        messageItem.type === "TEXT"
-                          ? "flex"
-                          : messageItem.type === "MEDIA"
-                          ? "flex"
-                          : "none"
-                      }
-                      flexWrap={true}
-                      padding={2}
-                      borderRadius={"md"}
-                      maxWidth="70%"
-                      bgColor={"green.100"}
-                      key={index}
-                    >
-                      <VStack maxWidth="100%" overflowWrap={"break-word"}>
-                        <VStack>
-                          <Text
-                            display={
-                              messageItem.type === "TEXT" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                          >
-                            {messageItem.msg}
-                          </Text>
-                          <Link
-                            color={"blue"}
-                            fontWeight={"bold"}
-                            display={
-                              messageItem.type === "MEDIA" ? "flex" : "none"
-                            }
-                            maxWidth={"100%"}
-                            href={messageItem.msg}
-                          >
-                            {messageItem.msg.substring(62)}
-                          </Link>
-                        </VStack>
-                      </VStack>
-                    </Box>
-                  </>
-                ))}
-              </VStack>
-            </VStack>
-          </Box>
         </Wrap>
       </VStack>
     </>
@@ -2376,41 +1509,3 @@ function AssignmentDetails() {
 }
 
 export default AssignmentDetails;
-
-export async function getStaticPaths() {
-  let config = {
-    headers: {
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.TWFuc2lnaGFuZ2FzOTk3QGdtYWlsLmNvbQ.KPWBp-VvwR49fneCGQdFCpWSpDDGSERHOfq7wCbgEyU`,
-    },
-  };
-  const response = await axios.get(apiUrl + "/assignment/fetch", config);
-  let data = await response.data.assignmentData;
-  const paths = data.map((data) => ({
-    params: { assignmentID: data._id },
-  }));
-  return {
-    paths,
-    fallback: false,
-  };
-}
-
-export async function getStaticProps({ params }) {
-  const { assignmentID } = params;
-
-  let config = {
-    headers: {
-      Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.TWFuc2lnaGFuZ2FzOTk3QGdtYWlsLmNvbQ.KPWBp-VvwR49fneCGQdFCpWSpDDGSERHOfq7wCbgEyU`,
-    },
-  };
-  const response = await axios.get(
-    apiUrl + "/assignment/fetch?_id=" + assignmentID,
-    config
-  );
-  let data = await response.data.assignmentData;
-
-  return {
-    props: {
-      data,
-    },
-  };
-}
