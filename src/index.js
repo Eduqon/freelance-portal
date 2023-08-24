@@ -25,22 +25,17 @@ ReactDOM.render(
             path="/assignment_details/:assignmentID"
             element={<AssignmentDetails />}
           />
-             <Route
-            path="/qcorder"
-            element={<QcPortal />}
-          />
-            <Route
-            path="/qclogin"
-            element={<Qclogin />}
-          />
+          <Route path="/qcorder" element={<QcPortal />} />
+          <Route path="/qclogin" element={<Qclogin />} />
           <Route path="/:assignmentID/:expertID" element={<SubmitQuote />} />
           <Route
             path="/:assignmentID/:expertID/expert_Operator_Chat"
             element={<ExpertOpertorChat />}
           />
-              <Route
-            path="/admin/assignment_details/:assignmentID"
-            element={<AssignmentDetails/>}/>
+          <Route
+            path="/qc/assignment_details/:assignmentID"
+            element={<AssignmentDetails />}
+          />
           <Route
             path="*"
             element={
@@ -49,7 +44,6 @@ ReactDOM.render(
               </Center>
             }
           />
-       
         </Routes>
       </BrowserRouter>
     </ChakraProvider>

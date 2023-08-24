@@ -208,6 +208,7 @@ function SubmitQuote() {
                   assignment.status === "Expert Assigned" ? "raw" : "rework",
                 _id: assignment.id,
                 expertId: params.expertID,
+                expertName: assignment.assignedExpertName,
                 files: [
                   {
                     url: fileUrl,
@@ -390,6 +391,7 @@ function SubmitQuote() {
               setAssignment({
                 id: data[0]._id,
                 assignedExpert: data[0].assignedExpert,
+                assignedExpertName: data[0].assignedExpertName,
                 assignedQC: data[0].assignedQC,
                 assignedOperator: data[0].assignedOperator,
                 client_id: data[0].client_id,

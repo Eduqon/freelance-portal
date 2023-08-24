@@ -180,6 +180,7 @@ function AssignmentDetails() {
           _id: data[index]._id,
           userId: data[index].userId,
           name: data[index].name,
+          user: data[index].user,
           url: data[index].url,
           category: data[index].category,
           createdAt:
@@ -213,6 +214,7 @@ function AssignmentDetails() {
         submissionsList.push({
           _id: data[index]._id,
           expertId: data[index].expertId,
+          expertName: data[index].expertName,
           name: data[index].name,
           url: data[index].url,
           category: data[index].category,
@@ -882,6 +884,7 @@ function AssignmentDetails() {
                     window.alert("Please Enter File Category");
                   } else {
                     let userToken = localStorage.getItem("expertToken");
+                    let userName = localStorage.getItem("userName");
                     let config = {
                       headers: { Authorization: `Bearer ${userToken}` },
                     };
@@ -895,6 +898,7 @@ function AssignmentDetails() {
                               category: fileCategory.value,
                               url: assignmentFileUrl,
                               name: assignmentFileName,
+                              user: userName,
                             },
                           ],
                         },
@@ -940,7 +944,7 @@ function AssignmentDetails() {
           <Button
             onClick={async () => {
               // navigate("/expert/portal");
-              navigate('/+qcorder')
+              navigate("/+qcorder");
 
               localStorage.setItem("backButton", true);
               localStorage.setItem("tabIndex", tabIndex);
@@ -1096,7 +1100,7 @@ function AssignmentDetails() {
                           )}
                           <Text>{action.at + ": "}</Text>
                           <Text fontWeight={"bold"}>
-                            {action.role === "Client" ? "Client" : action.uid}
+                            {action.role === "Client" ? "Client" : action.user}
                           </Text>
                         </HStack>
                         <Text>{action.action}</Text>
@@ -1206,9 +1210,7 @@ function AssignmentDetails() {
                         </HStack>
                         <HStack>
                           <Text fontWeight={"bold"}>User: </Text>
-                          <Text fontWeight={"bold"}>
-                            {assignmentFile.userId}
-                          </Text>
+                          <Text fontWeight={"bold"}>{assignmentFile.user}</Text>
                         </HStack>
                       </VStack>
                     </Box>
@@ -1247,7 +1249,9 @@ function AssignmentDetails() {
                         </HStack>
                         <HStack>
                           <Text fontWeight={"bold"}>Expert: </Text>
-                          <Text fontWeight={"bold"}>{submission.expertId}</Text>
+                          <Text fontWeight={"bold"}>
+                            {submission.expertName}
+                          </Text>
                         </HStack>
                       </VStack>
                     </Box>

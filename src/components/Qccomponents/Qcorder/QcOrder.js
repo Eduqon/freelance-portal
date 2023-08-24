@@ -91,7 +91,7 @@ function QcOrder() {
     try {
       let clientToken = localStorage.getItem("userToken");
       if (clientToken == null) {
-        navigate("/admin/login");
+        navigate("/qclogin");
       }
 
       let config = {

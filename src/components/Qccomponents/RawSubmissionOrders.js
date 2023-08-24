@@ -1310,7 +1310,7 @@ function RawSubmissionOrders({
                 <Tr key={assignment.id}>
                   <Td fontWeight={"semibold"} padding={0}>
                     <Box display={"flex"} alignItems="center">
-                      <Link href={"/admin/assignment_details/" + assignment.id}>
+                      <Link href={"/qc/assignment_details/" + assignment.id}>
                         {assignment.id}&nbsp;
                       </Link>
                       <Button
@@ -1396,7 +1396,8 @@ function RawSubmissionOrders({
                     {assignment.deadline}
                   </Td>
                   <Td color={"red.600"} fontWeight={"semibold"}>
-                    {assignment.expertDeadline
+                    {assignment.expertDeadline &&
+                    assignment.expertDeadline[assignment.id]
                       ? new Date(
                           assignment.expertDeadline[assignment.id][
                             assignment.expertDeadline[assignment.id].length - 1
@@ -1504,7 +1505,7 @@ function RawSubmissionOrders({
                         <Th>Id</Th>
                         <Td fontWeight={"semibold"}>
                           <Link
-                            href={"/admin/assignment_details/" + assignment.id}
+                            href={"/qc/assignment_details/" + assignment.id}
                           >
                             {assignment.id}
                           </Link>
