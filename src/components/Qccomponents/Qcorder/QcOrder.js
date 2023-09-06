@@ -532,6 +532,7 @@ function QcOrder() {
                   color: "#fff",
                   fontSize: "20px",
                   fontWeight: "bold",
+                  textAlign: "center",
                 }}
                 onClick={async () => openNotificationModal("Proof Read")}
               >

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import moment from "moment";
 import {
   RepeatIcon,
   AttachmentIcon,
@@ -511,6 +512,9 @@ function RawSubmissionOrders({
                   type="date"
                   id="date"
                   value={inputValue.date}
+                  max={moment(
+                    assignments[selectedIndex].deadline.split(",")[1]
+                  ).format("YYYY-MM-DD")}
                   onChange={(e) => {
                     setInputValue({
                       ...inputValue,
@@ -632,9 +636,24 @@ function RawSubmissionOrders({
                   submissions.map((submission, index) => (
                     <Tr key={submission._id}>
                       <Td maxW={"100px"}>
-                        <Link isExternal={true} href={submission.url}>
-                          {submission.name}
-                        </Link>
+                        <ul>
+                          {submission.name.length !== 0 &&
+                            submission.name.map((_) => {
+                              return (
+                                <li>
+                                  <Link
+                                    isExternal={true}
+                                    href={
+                                      "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
+                                      _
+                                    }
+                                  >
+                                    {_}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                        </ul>
                       </Td>
                       <Td>{submission.category}</Td>
                       <Td>{submission.createdAt}</Td>

@@ -60,8 +60,8 @@ function SubmitQuote() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const inputRef = useRef(null);
-  const [fileName, setFileName] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
+  const [fileName, setFileName] = useState([]);
+  const [fileUrl, setFileUrl] = useState([]);
 
   const [stickyNotes, setStickyNotes] = useState([]);
   const [qcNotes, setQcNotes] = useState([]);
@@ -69,13 +69,13 @@ function SubmitQuote() {
   const [operatorExpertChat, setOperatorExpertChat] = useState([]);
   const [qcExpertChat, setQcExpertChat] = useState([]);
 
-  const newMessageCounter = useMemo(() => {
-    if (assignment && operatorExpertChat.length) {
-      const lastMessage = operatorExpertChat[operatorExpertChat.length - 1];
-      return (lastMessage && lastMessage.newMessageCount) || 0;
-    }
-    return 0;
-  }, [operatorExpertChat, assignment]);
+  // const newMessageCounter = useMemo(() => {
+  //   if (assignment && operatorExpertChat.length) {
+  //     const lastMessage = operatorExpertChat[operatorExpertChat.length - 1];
+  //     return (lastMessage && lastMessage.newMessageCount) || 0;
+  //   }
+  //   return 0;
+  // }, [operatorExpertChat, assignment]);
 
   const expertMessageCounter = useMemo(() => {
     if (assignment && operatorExpertChat.length) {
@@ -278,15 +278,14 @@ function SubmitQuote() {
 
     axios(config)
       .then(function (response) {
-        console.log(response);
-        setFileUrl(
+        setFileUrl((fileUrl) => [
           "https://assignmentsanta.blob.core.windows.net/assignment-dscp/" +
-            encodeURIComponent(blobName)
-        );
+            encodeURIComponent(blobName),
+          ...fileUrl,
+        ]);
         setIsUploading(false);
       })
       .catch(function (error) {
-        console.log(error);
         setIsUploading(false);
       });
     onClose();
@@ -334,7 +333,6 @@ function SubmitQuote() {
       config
     );
     let data = await response.data.result;
-    console.log(data);
     qcNotesList = [];
     if (data !== null) {
       for (let index = 0; index < data.commentsFromQC.length; index++) {
@@ -747,12 +745,21 @@ function SubmitQuote() {
                 </Button>{" "}
                 <input
                   type="file"
+                  multiple={true}
                   onChange={async () => {
-                    setFileName(inputRef.current.files[0].name);
-                    await uploadFile(
-                      inputRef.current.files[0].name,
-                      inputRef.current.files[0]
-                    );
+                    let tempFileNames = [];
+                    for (
+                      let index = 0;
+                      index < inputRef.current.files.length;
+                      index++
+                    ) {
+                      tempFileNames.push(inputRef.current.files[index].name);
+                      await uploadFile(
+                        inputRef.current.files[index].name,
+                        inputRef.current.files[index]
+                      );
+                    }
+                    setFileName(tempFileNames);
                   }}
                   ref={inputRef}
                   style={{ display: "none" }}
@@ -760,6 +767,42 @@ function SubmitQuote() {
               </InputRightAddon>{" "}
             </InputGroup>{" "}
           </FormControl>{" "}
+          <Box marginTop={2} padding={"0 1rem"} width={"100%"}>
+            {fileUrl?.map((_, index) => {
+              return (
+                <Box
+                  display={"flex"}
+                  alignItems={"center"}
+                  justifyContent={"space-between"}
+                  marginBottom={1}
+                >
+                  <Box width={"60%"}>
+                    {_.split("/")[_.split("/").length - 1]}
+                  </Box>
+                  <Box>
+                    <Button
+                      onClick={() => {
+                        const finalArr = fileUrl.filter(
+                          (_, removedItemindex) => removedItemindex !== index
+                        );
+                        const finalFileNameList = fileName.filter(
+                          (_) =>
+                            _ !==
+                            fileUrl[index].split("/")[
+                              fileUrl[index].split("/").length - 1
+                            ]
+                        );
+                        setFileUrl(finalArr);
+                        setFileName(finalFileNameList);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
           <Button
             w={"full"}
             onClick={() => {
@@ -1249,7 +1292,7 @@ function SubmitQuote() {
                             type: "TEXT",
                             user: assignment.assignedExpert,
                             expertMsgCount: expertMessageCounter + 1,
-                            newMessageCount: newMessageCounter + 1,
+                            newMessageCount: 0,
                             operatorMsgCount: 0,
                           }),
                         }
